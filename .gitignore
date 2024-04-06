@@ -1,0 +1,6 @@
+__pycache__
+dist/
+*.lss
+*.ico
+*.zip
+TEST.py

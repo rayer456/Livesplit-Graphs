@@ -14,6 +14,7 @@ WIP
 
 or
 
+### *Note: This option might be unstable*
 - Install Python
 - Download the source zip from the [latest release](https://github.com/electrorayer/Livesplit-Graphs/releases), and extract
 - Run requirements.bat to install the necessary dependencies

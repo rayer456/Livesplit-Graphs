@@ -1,6 +1,7 @@
 import sys
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QSizePolicy
+from PyQt6 import QtGui
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
@@ -20,6 +21,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.connectSignalsSlots()
         self.graphWidgets, self.toolbars = [], []
 
+        # REMOVE testing
+        self.lsd = LiveSplitData("E:/Livesplit-new/layouts/Grand Theft Auto V - Trevor%.lss")
+        self.loadSplitsList()
+        self.option_impOverTime.click()
+
     def connectSignalsSlots(self):
         self.actionOpen.triggered.connect(self.selectFile)
         self.listSplits.itemClicked.connect(self.loadGraph)
@@ -38,10 +44,10 @@ class Window(QMainWindow, Ui_MainWindow):
             caption="Select a Livesplit file",
             filter="*.lss"
         )
-        self.livesplit_path = fileDialog[0]
+        livesplit_path = fileDialog[0]
 
-        if self.livesplit_path != "":
-            self.lsd = LiveSplitData(self.livesplit_path)
+        if livesplit_path != "":
+            self.lsd = LiveSplitData(livesplit_path)
             self.loadSplitsList()
         
     def loadSplitsList(self):
@@ -63,7 +69,7 @@ class Window(QMainWindow, Ui_MainWindow):
 
         showOutliers = self.check_showOutliers.isChecked()
         splitName = self.listSplits.currentItem().text()
-        graphTheme = self.setTheme(self.color_options.currentText())
+        graphTheme: Theme = self.setTheme(self.color_options.currentText())
         
         for option in self.getOptionButtons():
             if option.isChecked():
@@ -85,9 +91,14 @@ class Window(QMainWindow, Ui_MainWindow):
             case "Improvement Over Attempts":
                 fig = plot.imp_over_attempts()
             case "Improvement Over Time":
-                fig = plot.imp_over_time()
+                # fig = plot.personal_best_over_time()
+                fig = plot.personal_best_over_attempts()
+                # fig = plot.imp_over_time()
             case "Finished Runs Over Time":
                 fig = plot.finished_runs_over_time()
+            case "Personal Best":
+                # option for time and attempts
+                fig = plot.personal_best_over_time()
         
         plt.grid()
         plt.tight_layout()
@@ -108,7 +119,7 @@ class Window(QMainWindow, Ui_MainWindow):
         if len(self.graphWidgets) != 0:
             self.loadGraph()
 
-    def getOptionButtons(self):
+    def getOptionButtons(self) -> list[QPushButton]:
         return [self.options_gridLayout.itemAt(i).widget() for i in range(self.options_gridLayout.count()) if isinstance(self.options_gridLayout.itemAt(i).widget(), QPushButton)]
             
     def removeOldGraph(self):

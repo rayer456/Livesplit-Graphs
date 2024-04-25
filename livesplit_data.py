@@ -48,7 +48,10 @@ class LiveSplitData():
             -
         '''
         self.finished_dates, self.finished_times, self.finished_indexes = [], [], []
+        self.pb_dates, self.pb_times = [], []
+        self.pb_abs_indexes = []
 
+        pb_time = datetime.datetime.strptime("23:59:59", "%H:%M:%S")
         for i, attempt in enumerate(self.xroot.find('AttemptHistory')):
             real_time = attempt.find('RealTime')
             end_date = attempt.attrib.get('ended')
@@ -56,8 +59,16 @@ class LiveSplitData():
             if real_time is not None:
                 self.finished_dates.append(converted_date)
                 t = real_time.text
-                self.finished_times.append(datetime.datetime.strptime(t[:t.find('.')], '%H:%M:%S'))
+                finished_time = datetime.datetime.strptime(t[:t.find('.')], '%H:%M:%S')
+                self.finished_times.append(finished_time)
                 self.finished_indexes.append(i+1)
+
+                # check if PB
+                if finished_time < pb_time:
+                    self.pb_dates.append(converted_date)
+                    self.pb_times.append(finished_time)
+                    pb_time = finished_time
+                    self.pb_abs_indexes.append(i+1)
         
         self.AOT_dates, self.AOT_attempts = [], []
 
@@ -159,6 +170,7 @@ class LiveSplitData():
         '''formats: %M:%S | %Y-%m-%d | %H:%M:%S'''
         ticks -= 1
         sorted_realtimes = sorted(realtimes)
+        print(sorted_realtimes)
 
         if format == '%M:%S':
             #5:26.20 -> 5:26.00
@@ -229,7 +241,9 @@ class LiveSplitData():
         n_mean = mean(times_in_seconds)
         upper_limit = n_mean + std_dev * 3
 
-        self.seg_times_NO = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time < upper_limit]
+        print(upper_limit)
+
+        self.seg_times_NO = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
         
         self.seg_indexes_NO = [i for i in range(1, len(self.seg_times_NO)+1)]
 

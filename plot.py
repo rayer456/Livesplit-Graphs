@@ -1,12 +1,18 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.axes import Axes
+
 
 from livesplit_data import LiveSplitData
+from theme import Theme
 
 
 class Plot():
-    def __init__(self, livesplit_data: LiveSplitData, split_name, theme, show_outliers=False):
-        self.fig, self.ax = plt.subplots()
+    def __init__(self, livesplit_data: LiveSplitData, split_name, theme: Theme, show_outliers=False):
+        # retarded I know
+        self.fig, ax = plt.subplots()
+        self.ax: Axes = ax
+
         self.lsd = livesplit_data
         self.split_name = split_name
         self.show_outliers = show_outliers
@@ -154,6 +160,70 @@ class Plot():
         self.set_axes_headers(title="Finished Runs Over Time", title_color=self.theme.title_color)
         self.ax.set_xlabel("Date")
         self.ax.set_ylabel("Finished Runs")
+        self.ax.set_axisbelow(True)
+
+        return self.fig
+
+    def personal_best_over_time(self):
+        """
+        https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
+        """
+
+        pb_dates = self.lsd.pb_dates
+        pb_times = self.lsd.pb_times
+        interval_dates = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
+
+        self.ax.plot(
+            pb_dates, 
+            pb_times, 
+            color=self.theme.plot_color, 
+            linewidth=1.5, 
+            marker="o", 
+            markersize=3.5, 
+            markerfacecolor=self.theme.ticks_color, 
+            markeredgecolor=self.theme.ticks_color
+        )
+
+        #intervals
+        interval_times = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
+        # self.ax.fill_between(finished_dates, min(interval_dates), finished_times, facecolor=self.theme.scatter_color, alpha=0.5)
+        self.ax.set_yticks(interval_times)
+        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
+
+        interval_dates = self.lsd.get_dynamic_interval(pb_dates, ticks=6, format='%Y-%m-%d')
+        self.ax.set_xticks(interval_dates)
+        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
+
+        self.set_axes_headers(title="Personal Best Over Time", title_color=self.theme.title_color)
+        self.ax.set_xlabel("Date")
+        self.ax.set_ylabel("Run Time")
+        self.ax.set_axisbelow(True)
+
+        return self.fig
+    
+    def personal_best_over_attempts(self):
+        pb_times = self.lsd.pb_times
+        pb_abs_indexes = self.lsd.pb_abs_indexes
+
+        self.ax.plot(
+            pb_abs_indexes, 
+            pb_times, 
+            color=self.theme.plot_color, 
+            linewidth=1.5, 
+            marker="o", 
+            markersize=3.5, 
+            markerfacecolor=self.theme.ticks_color, 
+            markeredgecolor=self.theme.ticks_color
+        )
+
+
+        interval_times = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
+        self.ax.set_yticks(interval_times)
+        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
+
+        self.set_axes_headers(title="Personal Best Over Attempts", title_color=self.theme.title_color)
+        self.ax.set_xlabel("Attempts")
+        self.ax.set_ylabel("Time")
         self.ax.set_axisbelow(True)
 
         return self.fig

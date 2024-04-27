@@ -53,21 +53,25 @@ class LiveSplitData():
         pb_time = datetime.datetime.strptime("23:59:59", "%H:%M:%S")
         for i, attempt in enumerate(self.xroot.find('AttemptHistory')):
             real_time = attempt.find('RealTime')
+            if real_time is None:
+                continue
             end_date = attempt.attrib.get('ended')
             converted_date = datetime.datetime.strptime(end_date[:10], '%m/%d/%Y')
-            if real_time is not None:
-                self.finished_dates.append(converted_date)
-                t = real_time.text
-                finished_time = datetime.datetime.strptime(t[:t.find('.')], '%H:%M:%S')
-                self.finished_times.append(finished_time)
-                self.finished_indexes.append(i+1)
+            self.finished_dates.append(converted_date)
 
-                # check if PB
-                if finished_time < pb_time:
-                    self.pb_dates.append(converted_date)
-                    self.pb_times.append(finished_time)
-                    pb_time = finished_time
-                    self.pb_abs_indexes.append(i+1)
+            t = real_time.text
+            if len(t) == 8:
+                    t += ".0000100"
+            finished_time = datetime.datetime.strptime(t[:-1], '%H:%M:%S.%f')
+            self.finished_times.append(finished_time)
+            self.finished_indexes.append(i+1)
+
+            # check if PB
+            if finished_time < pb_time:
+                self.pb_dates.append(converted_date)
+                self.pb_times.append(finished_time)
+                pb_time = finished_time
+                self.pb_abs_indexes.append(i+1)
         
         self.AOT_dates, self.AOT_attempts = [], []
 
@@ -93,10 +97,11 @@ class LiveSplitData():
             
             last_date = current_date
 
+
     def get_category_rel_indexes(self):
         return [i+1 for i in range(len(self.finished_indexes))]
     
-    def extract_segment_data(self, split_name):
+    def extract_segment_data(self, segment_index: int):
         ''' Extracts following data with and without outliers:
             - Segment Times
             - Segment Indexes
@@ -105,36 +110,35 @@ class LiveSplitData():
         '''
         self.seg_times, self.seg_indexes = [], []
         
-        for segment in self.segments:
-            if segment.find('Name').text == split_name:
-                seg_history = segment.find('SegmentHistory')
-                for attempt in seg_history:
-                    try:
-                        index = int(attempt.attrib.get('id'))
-                        if index > 0:
-                            t = attempt[0].text #index error
+        segment = self.segments[segment_index]
+        segment_history = segment.find('SegmentHistory')
+        for attempt in segment_history:
+            try:
+                if int(attempt.attrib.get('id')) < 0:
+                    continue
 
-                            #add missing microseconds
-                            if len(t) == 8:
-                                t += ".0000100"
-                            
-                            #0:03:33.2988750
-                            td_time = datetime.timedelta(
-                            minutes=int(t[t.find(':')+1:t.find(':', 3)]), 
-                            seconds=int(t[t.find(':', 3)+1:t.find('.')]), 
-                            microseconds=int(t[t.find('.')+1:-1])
-                            )
+                # TODO add support for GameTime (no)
+                time_type = "RealTime"
+                try:
+                    t: str = attempt.find(time_type).text
+                except AttributeError:
+                    # can't find RealTime element
+                    continue
 
-                            dt_time = datetime.datetime.strptime(str(td_time), '%H:%M:%S.%f')
-                            self.seg_times.append(dt_time)
+                # add missing microseconds
+                if len(t) == 8:
+                    t += ".0000100"
+                
+                # remove last digit for microseconds as datetime.strptime() only allows up to 6 decimals after the decimal point, livesplit stores 7 at most
+                dt_time = datetime.datetime.strptime(t[:-1], '%H:%M:%S.%f')
+                self.seg_times.append(dt_time)
 
-                    except ValueError:
-                        print("value_error")
-                        continue
-                    except IndexError:
-                        #empty Time element
-                        continue
-                break
+            except ValueError as e:
+                print(e)
+                continue
+            except IndexError:
+                #empty Time element
+                continue
 
         self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
         self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)
@@ -164,7 +168,7 @@ class LiveSplitData():
 
         return datetime.datetime(1900, 1, 1, 0, 0, 0) + total / len(values)
     
-    def get_dynamic_interval(self, realtimes, ticks, format: str):
+    def get_dynamic_interval(self, realtimes: list[datetime.datetime], ticks, format: str):
         '''formats: %M:%S | %Y-%m-%d | %H:%M:%S'''
         ticks -= 1
         sorted_realtimes = sorted(realtimes)
@@ -237,8 +241,6 @@ class LiveSplitData():
         std_dev = pstdev(times_in_seconds)
         n_mean = mean(times_in_seconds)
         upper_limit = n_mean + std_dev * 3
-
-        print(upper_limit)
 
         self.seg_times_NO = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
         

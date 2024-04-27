@@ -64,15 +64,40 @@ class Window(QMainWindow, Ui_MainWindow):
         plot = Plot(
             livesplit_data=self.lsd, 
             split_name=self.listSplits.currentItem().text(), 
+            split_index=self.listSplits.currentRow(),
             theme=self.setTheme(self.color_options.currentText()), 
             show_outliers=self.check_showOutliers.isChecked()
         )
 
+        # generate figure object
         match checkedButton.text():
             case "Histogram":
-                fig = plot.hist()
+                self.lsd.extract_segment_data(self.listSplits.currentRow())
+
+                if not self.check_showOutliers.isChecked():
+                    self.lsd.remove_segment_outliers()
+                    seg_times = self.lsd.seg_times_NO
+                    self.lsd.seg_times_NO
+                else:
+                    seg_times = self.lsd.seg_times
+
+                fig = plot.hist(seg_times)
             case "Moving Average":
-                fig = plot.moving_avg()
+                self.lsd.extract_segment_data(self.listSplits.currentRow())
+
+                if self.check_showOutliers.isChecked():
+                    seg_times = self.lsd.seg_times
+                    seg_indexes = self.lsd.seg_indexes
+                    avg_times = self.lsd.avg_seg_times
+                    avg_indexes = self.lsd.avg_seg_indexes
+                else:
+                    self.lsd.remove_segment_outliers()
+                    seg_times = self.lsd.seg_times_NO
+                    seg_indexes = self.lsd.seg_indexes_NO
+                    avg_times = self.lsd.avg_seg_times_NO
+                    avg_indexes = self.lsd.avg_seg_indexes_NO
+        
+                fig = plot.moving_avg(seg_times, seg_indexes, avg_times, avg_indexes)
             case "Attempts Over Time":
                 fig = plot.attempts_over_time()
             case "Improvement Over Attempts":

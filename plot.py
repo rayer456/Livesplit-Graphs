@@ -8,41 +8,35 @@ from theme import Theme
 
 
 class Plot():
-    def __init__(self, livesplit_data: LiveSplitData, split_name, theme: Theme, show_outliers=False):
+    def __init__(self, livesplit_data: LiveSplitData, split_name, split_index, theme: Theme, show_outliers=False):
         # retarded I know
         self.fig, ax = plt.subplots()
         self.ax: Axes = ax
 
         self.lsd = livesplit_data
         self.split_name = split_name
-        self.show_outliers = show_outliers
+        self.split_index = split_index
         self.theme = theme
-
+        self.show_outliers = show_outliers
+        
         self.fig.patch.set_facecolor(self.theme.figure_color)
         self.ax.set_facecolor(self.theme.axes_color)
         self.ax.tick_params(colors=self.theme.ticks_color)
         self.ax.xaxis.label.set_color(self.theme.xy_label_color)
         self.ax.yaxis.label.set_color(self.theme.xy_label_color)
 
-    def hist(self):
+    def hist(self, seg_times):
         ''' 
-        Need seg_times and interval_times from LSD
-        '''
-        
-        self.lsd.extract_segment_data(self.split_name)
-        if not self.show_outliers:
-            self.lsd.remove_segment_outliers()
-            seg_times = self.lsd.seg_times_NO
-            self.lsd.seg_times_NO
-        else:
-            seg_times = self.lsd.seg_times
+        Plot a histogram given `seg_times`.
 
-        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
+        `seg_times` is a list of datetime objects which is used to calculate the interval used to plot dates on the X axis.
+        '''
 
         #draw graph
         self.ax.hist(seg_times, color=self.theme.hist_color)
 
         #set ticks
+        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
         self.ax.set_xticks(interval_times)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%M:%S"))
 
@@ -56,28 +50,13 @@ class Plot():
 
         return self.fig
     
-    def moving_avg(self):
-        self.lsd.extract_segment_data(self.split_name)
-
-        if self.show_outliers:
-            seg_times = self.lsd.seg_times
-            seg_indexes = self.lsd.seg_indexes
-            avg_times = self.lsd.avg_seg_times
-            avg_indexes = self.lsd.avg_seg_indexes
-        else:
-            self.lsd.remove_segment_outliers()
-            seg_times = self.lsd.seg_times_NO
-            seg_indexes = self.lsd.seg_indexes_NO
-            avg_times = self.lsd.avg_seg_times_NO
-            avg_indexes = self.lsd.avg_seg_indexes_NO
-
-        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
-
+    def moving_avg(self, seg_times, seg_indexes, avg_times, avg_indexes):
         #draw graph
         self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         #set ticks
+        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
         self.ax.set_yticks(interval_times)
         self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%M:%S"))
 
@@ -99,7 +78,7 @@ class Plot():
         self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color)
 
         self.ax.set_xticks(interval_dates)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %#d '%y"))
+        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
 
         self.set_axes_headers(title="Attempts Over Time", title_color=self.theme.title_color)
         

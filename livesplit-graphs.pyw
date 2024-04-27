@@ -1,6 +1,7 @@
 import sys
+import gc
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QSizePolicy, QButtonGroup, QWidget
 from PyQt6 import QtGui
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
@@ -12,10 +13,9 @@ from theme import Theme
 
 
 class Window(QMainWindow, Ui_MainWindow):
-    optionButtons: list[QPushButton] = []
-    graphWidgets: list = []
-    toolbars:list = []
-    lsd: LiveSplitData|None = None
+    currentGraph: QWidget | None = None
+    currentToolbar: NavigationToolbar | None = None
+    lsd: LiveSplitData | None = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -24,27 +24,18 @@ class Window(QMainWindow, Ui_MainWindow):
 
         self.listSplits.clear()
         self.statusbar.hide()
-        self.setOptionButtons()
         self.connectSignalsSlots()
 
         # REMOVE testing
-        self.lsd = LiveSplitData("trevis.lss")
+        self.lsd = LiveSplitData("E:/Livesplit-new/layouts/Grand Theft Auto V - Trevor%.lss")
         self.loadSplitsList()
-        #self.option_impOverTime.click()
 
     def connectSignalsSlots(self):
         self.actionOpen.triggered.connect(self.selectFile)
         self.listSplits.itemClicked.connect(self.loadGraph)
-        self.check_showOutliers.clicked.connect(self.outliers)
-        self.option_hist.clicked.connect(self.loadGraph)
-        self.option_movingAvg.clicked.connect(self.loadGraph)
-        self.option_attemptsOverTime.clicked.connect(self.loadGraph)
-        self.option_impOverTime.clicked.connect(self.loadGraph)
-        self.option_impOverAttempts.clicked.connect(self.loadGraph)
-        self.option_finishedRunsOverTime.clicked.connect(self.loadGraph)
-        self.option_personalBestOverAttempts.clicked.connect(self.loadGraph)
-        self.option_personalBestOverTime.clicked.connect(self.loadGraph)
+        self.check_showOutliers.clicked.connect(self.loadGraph)
         self.color_options.currentIndexChanged.connect(self.loadGraph)
+        self.option_buttons.buttonClicked.connect(self.loadGraph)
     
     def selectFile(self):
         fileDialog = QFileDialog.getOpenFileName(
@@ -63,32 +54,21 @@ class Window(QMainWindow, Ui_MainWindow):
         self.listSplits.addItems(self.lsd.split_names)
     
     def loadGraph(self):
-        for option in self.optionButtons:
-            if option.isChecked():
-                graphChoice = option.text()
-                break
-        else:
-            # no option selected
+        checkedButton = self.option_buttons.checkedButton()
+        if checkedButton is None or self.lsd is None:
             return
-
-        self.removeOldGraph()
-        self.removeOldToolbar()
-
+        
         if self.listSplits.currentItem() is None:
-            if self.lsd is None:
-                return
             self.listSplits.setCurrentRow(0)
 
-        showOutliers = self.check_showOutliers.isChecked()
-        splitName = self.listSplits.currentItem().text()
-        graphTheme: Theme = self.setTheme(self.color_options.currentText())
-        
-        
+        plot = Plot(
+            livesplit_data=self.lsd, 
+            split_name=self.listSplits.currentItem().text(), 
+            theme=self.setTheme(self.color_options.currentText()), 
+            show_outliers=self.check_showOutliers.isChecked()
+        )
 
-        self.lsd.extract_segment_data(splitName)
-        plot = Plot(self.lsd, splitName, graphTheme, showOutliers)
-
-        match graphChoice:
+        match checkedButton.text():
             case "Histogram":
                 fig = plot.hist()
             case "Moving Average":
@@ -109,43 +89,46 @@ class Window(QMainWindow, Ui_MainWindow):
                 print("Forgot to add case")
                 return
         
+        # TODO why is this here?
         plt.grid()
         plt.tight_layout()
-        graph = FigureCanvasQTAgg(fig)
-        graph.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding))
 
-        toolbar = NavigationToolbar(graph, self)
-        toolbar.setStyleSheet("background-color: white;")
+        # remove old graph or placeholder
+        self.removeGraphAndToolbar()
+        self.graph_placeholder.setParent(None)
 
-        self.placeholder.setParent(None)
+        # define new graph and toolbar
+        self.currentGraph = FigureCanvasQTAgg(fig)
+        self.currentGraph.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding))
+        self.currentToolbar = NavigationToolbar(canvas=self.currentGraph, parent=self)
+        self.currentToolbar.setStyleSheet("background-color: white;")
 
-        self.graphWidgets.append(graph)
-        self.toolbars.append(toolbar)
-        self.graph_layout.addWidget(toolbar)
-        self.graph_layout.addWidget(graph)     
-
-    def outliers(self):
-        if len(self.graphWidgets) != 0:
-            self.loadGraph()
-
-    def setOptionButtons(self):
-        for i in range(self.options_gridLayout.count()):
-            widget = self.options_gridLayout.itemAt(i).widget()
-            if isinstance(widget, QPushButton):
-                self.optionButtons.append(widget)
+        # add new graph to layout
+        self.graph_layout.addWidget(self.currentToolbar)
+        self.graph_layout.addWidget(self.currentGraph)     
+    
             
-    def removeOldGraph(self):
+    def removeCurrentGraph(self):
+        if self.currentGraph is None:
+            return
+
         plt.close("all")
-        if len(self.graphWidgets) != 0:
-            lastGraph = self.graphWidgets.pop()
-            lastGraph.setParent(None)
-            self.graph_layout.removeWidget(lastGraph)
+        self.currentGraph.setParent(None)
+        self.graph_layout.removeWidget(self.currentGraph)
+        self.currentGraph = None
             
-    def removeOldToolbar(self):
-        if len(self.toolbars) != 0:
-            lastToolbar = self.toolbars.pop()
-            lastToolbar.setParent(None)
-            self.graph_layout.removeWidget(lastToolbar)
+    def removeCurrentToolbar(self):
+        if self.currentToolbar is None:
+            return
+        
+        self.currentToolbar.setParent(None)
+        self.graph_layout.removeWidget(self.currentToolbar)
+        self.currentToolbar = None
+
+    def removeGraphAndToolbar(self):
+        self.removeCurrentGraph()
+        self.removeCurrentToolbar()
+        gc.collect()
     
     def setTheme(self, theme):
         match theme:

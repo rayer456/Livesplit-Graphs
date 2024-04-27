@@ -32,7 +32,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="layoutDirection">
-    <enum>Qt::LeftToRight</enum>
+    <enum>Qt::LayoutDirection::LeftToRight</enum>
    </property>
    <property name="styleSheet">
     <string notr="true">.option_button {
@@ -155,7 +155,7 @@
            </font>
           </property>
           <property name="focusPolicy">
-           <enum>Qt::StrongFocus</enum>
+           <enum>Qt::FocusPolicy::StrongFocus</enum>
           </property>
           <property name="autoFillBackground">
            <bool>false</bool>
@@ -181,7 +181,7 @@ QListWidget#listSplits:item:selected {
 </string>
           </property>
           <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
+           <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
           </property>
           <property name="selectionRectVisible">
            <bool>false</bool>
@@ -209,7 +209,7 @@ QListWidget#listSplits:item:selected {
         <item>
          <layout class="QGridLayout" name="options_gridLayout" rowstretch="0,0,0,0" columnstretch="0,0,0,0">
           <property name="sizeConstraint">
-           <enum>QLayout::SetNoConstraint</enum>
+           <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
           </property>
           <property name="leftMargin">
            <number>20</number>
@@ -250,7 +250,7 @@ QListWidget#listSplits:item:selected {
              </font>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::WheelFocus</enum>
+             <enum>Qt::FocusPolicy::WheelFocus</enum>
             </property>
             <property name="text">
              <string>Attempts Over Time</string>
@@ -267,6 +267,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="3" column="0">
@@ -286,7 +289,7 @@ QListWidget#listSplits:item:selected {
              <cursorShape>ArrowCursor</cursorShape>
             </property>
             <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
+             <enum>Qt::LayoutDirection::LeftToRight</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QCheckBox {
@@ -341,6 +344,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="1" column="2">
@@ -383,6 +389,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="1" column="0">
@@ -425,6 +434,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="1" column="1">
@@ -467,6 +479,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="0" column="0">
@@ -515,6 +530,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="0" column="3">
@@ -557,6 +575,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
           <item row="1" column="3">
@@ -599,6 +620,9 @@ QListWidget#listSplits:item:selected {
             <property name="class" stdset="0">
              <string>option_button</string>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">option_buttons</string>
+            </attribute>
            </widget>
           </item>
          </layout>
@@ -618,7 +642,7 @@ QListWidget#listSplits:item:selected {
            <number>20</number>
           </property>
           <item>
-           <widget class="QWidget" name="placeholder" native="true">
+           <widget class="QWidget" name="graph_placeholder" native="true">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -666,4 +690,11 @@ QListWidget#listSplits:item:selected {
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="option_buttons">
+   <property name="exclusive">
+    <bool>true</bool>
+   </property>
+  </buttongroup>
+ </buttongroups>
 </ui>

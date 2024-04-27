@@ -28,6 +28,8 @@ class Plot():
         ''' 
         Need seg_times and interval_times from LSD
         '''
+        
+        self.lsd.extract_segment_data(self.split_name)
         if not self.show_outliers:
             self.lsd.remove_segment_outliers()
             seg_times = self.lsd.seg_times_NO
@@ -55,6 +57,8 @@ class Plot():
         return self.fig
     
     def moving_avg(self):
+        self.lsd.extract_segment_data(self.split_name)
+
         if self.show_outliers:
             seg_times = self.lsd.seg_times
             seg_indexes = self.lsd.seg_indexes

@@ -1,5 +1,4 @@
 import datetime
-import gc
 from dateutil import relativedelta
 import xml.etree.ElementTree as ET
 from statistics import pstdev, mean
@@ -104,7 +103,6 @@ class LiveSplitData():
             - Average Segment Time every 10 times
             - Index for that Average Segment Time
         '''
-        gc.collect()
         self.seg_times, self.seg_indexes = [], []
         
         for segment in self.segments:

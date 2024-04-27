@@ -163,13 +163,13 @@ class Plot():
             linewidth=1.5, 
             marker="o", 
             markersize=3.5, 
-            markerfacecolor=self.theme.ticks_color, 
-            markeredgecolor=self.theme.ticks_color
+            markerfacecolor=self.theme.scatter_color, 
+            markeredgecolor=self.theme.scatter_color
         )
 
         #intervals
         interval_times = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
-        # self.ax.fill_between(finished_dates, min(interval_dates), finished_times, facecolor=self.theme.scatter_color, alpha=0.5)
+
         self.ax.set_yticks(interval_times)
         self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 
@@ -195,8 +195,8 @@ class Plot():
             linewidth=1.5, 
             marker="o", 
             markersize=3.5, 
-            markerfacecolor=self.theme.ticks_color, 
-            markeredgecolor=self.theme.ticks_color
+            markerfacecolor=self.theme.scatter_color, 
+            markeredgecolor=self.theme.scatter_color
         )
 
 

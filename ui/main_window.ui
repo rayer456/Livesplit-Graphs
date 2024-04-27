@@ -148,7 +148,6 @@
            <font>
             <family>Segoe UI</family>
             <pointsize>12</pointsize>
-            <weight>75</weight>
             <italic>false</italic>
             <bold>true</bold>
             <underline>false</underline>
@@ -208,11 +207,14 @@ QListWidget#listSplits:item:selected {
          <number>0</number>
         </property>
         <item>
-         <layout class="QGridLayout" name="options_gridLayout" rowstretch="0,0,0,0" columnstretch="0,0,0">
+         <layout class="QGridLayout" name="options_gridLayout" rowstretch="0,0,0,0" columnstretch="0,0,0,0">
           <property name="sizeConstraint">
            <enum>QLayout::SetNoConstraint</enum>
           </property>
           <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
            <number>20</number>
           </property>
           <property name="bottomMargin">
@@ -221,48 +223,6 @@ QListWidget#listSplits:item:selected {
           <property name="spacing">
            <number>3</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="option_movingAvg">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Moving Average</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-            <property name="autoExclusive">
-             <bool>true</bool>
-            </property>
-            <property name="class" stdset="0">
-             <string>option_button</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QPushButton" name="option_attemptsOverTime">
             <property name="sizePolicy">
@@ -309,6 +269,38 @@ QListWidget#listSplits:item:selected {
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="check_showOutliers">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="cursor">
+             <cursorShape>ArrowCursor</cursorShape>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QCheckBox {
+	margin-left: 10px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Show Outliers</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="2">
            <widget class="QPushButton" name="option_impOverAttempts">
             <property name="sizePolicy">
@@ -351,35 +343,87 @@ QListWidget#listSplits:item:selected {
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="check_showOutliers">
+          <item row="1" column="2">
+           <widget class="QPushButton" name="option_finishedRunsOverTime">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
             </property>
             <property name="font">
              <font>
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="cursor">
-             <cursorShape>ArrowCursor</cursorShape>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QCheckBox {
-	margin-left: 10px;
-}</string>
-            </property>
             <property name="text">
-             <string>Show Outliers</string>
+             <string>Finished Runs Over Time</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <property name="checked">
              <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="class" stdset="0">
+             <string>option_button</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="option_movingAvg">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Moving Average</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="class" stdset="0">
+             <string>option_button</string>
             </property>
            </widget>
           </item>
@@ -473,8 +517,8 @@ QListWidget#listSplits:item:selected {
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="option_finishedRunsOverTime">
+          <item row="0" column="3">
+           <widget class="QPushButton" name="option_personalBestOverTime">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -499,7 +543,49 @@ QListWidget#listSplits:item:selected {
              </font>
             </property>
             <property name="text">
-             <string>Finished Runs Over Time</string>
+             <string>PB Over Time</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="class" stdset="0">
+             <string>option_button</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="option_personalBestOverAttempts">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>PB Over Attempts</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -560,7 +646,7 @@ QListWidget#listSplits:item:selected {
      <x>0</x>
      <y>0</y>
      <width>1088</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

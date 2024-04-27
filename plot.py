@@ -117,7 +117,7 @@ class Plot():
 
         self.set_axes_headers(title="Improvement Over Attempts", title_color=self.theme.title_color)
         self.ax.set_xlabel("Attempts")
-        self.ax.set_ylabel("Time")
+        self.ax.set_ylabel("Run Time")
         self.ax.set_axisbelow(True)
 
         return self.fig
@@ -223,7 +223,7 @@ class Plot():
 
         self.set_axes_headers(title="Personal Best Over Attempts", title_color=self.theme.title_color)
         self.ax.set_xlabel("Attempts")
-        self.ax.set_ylabel("Time")
+        self.ax.set_ylabel("Run Time")
         self.ax.set_axisbelow(True)
 
         return self.fig

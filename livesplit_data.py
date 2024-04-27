@@ -170,7 +170,6 @@ class LiveSplitData():
         '''formats: %M:%S | %Y-%m-%d | %H:%M:%S'''
         ticks -= 1
         sorted_realtimes = sorted(realtimes)
-        print(sorted_realtimes)
 
         if format == '%M:%S':
             #5:26.20 -> 5:26.00

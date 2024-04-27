@@ -5,26 +5,32 @@ from PyQt6 import QtGui
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
-from main_window_ui import Ui_MainWindow
+from ui.main_window_ui import Ui_MainWindow
 from livesplit_data import LiveSplitData
 from plot import Plot
 from theme import Theme
 
 
 class Window(QMainWindow, Ui_MainWindow):
+    optionButtons: list[QPushButton] = []
+    graphWidgets: list = []
+    toolbars:list = []
+    lsd: LiveSplitData|None = None
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowTitle("Livesplit Graphs")
+
         self.listSplits.clear()
         self.statusbar.hide()
+        self.setOptionButtons()
         self.connectSignalsSlots()
-        self.graphWidgets, self.toolbars = [], []
 
         # REMOVE testing
-        self.lsd = LiveSplitData("E:/Livesplit-new/layouts/Grand Theft Auto V - Trevor%.lss")
+        self.lsd = LiveSplitData("trevis.lss")
         self.loadSplitsList()
-        self.option_impOverTime.click()
+        #self.option_impOverTime.click()
 
     def connectSignalsSlots(self):
         self.actionOpen.triggered.connect(self.selectFile)
@@ -36,6 +42,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.option_impOverTime.clicked.connect(self.loadGraph)
         self.option_impOverAttempts.clicked.connect(self.loadGraph)
         self.option_finishedRunsOverTime.clicked.connect(self.loadGraph)
+        self.option_personalBestOverAttempts.clicked.connect(self.loadGraph)
+        self.option_personalBestOverTime.clicked.connect(self.loadGraph)
         self.color_options.currentIndexChanged.connect(self.loadGraph)
     
     def selectFile(self):
@@ -55,28 +63,27 @@ class Window(QMainWindow, Ui_MainWindow):
         self.listSplits.addItems(self.lsd.split_names)
     
     def loadGraph(self):
+        for option in self.optionButtons:
+            if option.isChecked():
+                graphChoice = option.text()
+                break
+        else:
+            # no option selected
+            return
+
         self.removeOldGraph()
         self.removeOldToolbar()
 
         if self.listSplits.currentItem() is None:
-            if hasattr(self, "lsd"):
-                self.listSplits.setCurrentRow(0)
-            else:
-                return 0
-        
-        #BUG No row selected = first index auto selected? only on first attempt? 
-        self.listSplits.setCurrentRow(self.listSplits.currentRow())
+            if self.lsd is None:
+                return
+            self.listSplits.setCurrentRow(0)
 
         showOutliers = self.check_showOutliers.isChecked()
         splitName = self.listSplits.currentItem().text()
         graphTheme: Theme = self.setTheme(self.color_options.currentText())
         
-        for option in self.getOptionButtons():
-            if option.isChecked():
-                graphChoice = option.text()
-                break
-        else:
-            return "no graph selected"
+        
 
         self.lsd.extract_segment_data(splitName)
         plot = Plot(self.lsd, splitName, graphTheme, showOutliers)
@@ -91,14 +98,16 @@ class Window(QMainWindow, Ui_MainWindow):
             case "Improvement Over Attempts":
                 fig = plot.imp_over_attempts()
             case "Improvement Over Time":
-                # fig = plot.personal_best_over_time()
-                fig = plot.personal_best_over_attempts()
-                # fig = plot.imp_over_time()
+                fig = plot.imp_over_time()
             case "Finished Runs Over Time":
                 fig = plot.finished_runs_over_time()
-            case "Personal Best":
-                # option for time and attempts
+            case "PB Over Time":
                 fig = plot.personal_best_over_time()
+            case "PB Over Attempts":
+                fig = plot.personal_best_over_attempts()
+            case _:
+                print("Forgot to add case")
+                return
         
         plt.grid()
         plt.tight_layout()
@@ -119,8 +128,11 @@ class Window(QMainWindow, Ui_MainWindow):
         if len(self.graphWidgets) != 0:
             self.loadGraph()
 
-    def getOptionButtons(self) -> list[QPushButton]:
-        return [self.options_gridLayout.itemAt(i).widget() for i in range(self.options_gridLayout.count()) if isinstance(self.options_gridLayout.itemAt(i).widget(), QPushButton)]
+    def setOptionButtons(self):
+        for i in range(self.options_gridLayout.count()):
+            widget = self.options_gridLayout.itemAt(i).widget()
+            if isinstance(widget, QPushButton):
+                self.optionButtons.append(widget)
             
     def removeOldGraph(self):
         plt.close("all")

@@ -38,8 +38,8 @@ class Theme():
         self.scatter_color = scatter_color
         self.hist_color = hist_color
     
-    @classmethod
-    def shadow(cls):
+    @staticmethod
+    def shadow():
         return Theme(
             figure_color = "black", 
             axes_color = "black", 
@@ -51,8 +51,8 @@ class Theme():
             hist_color = "white"
         )
     
-    @classmethod
-    def alpine(cls):
+    @staticmethod
+    def alpine():
         return Theme(
             figure_color = "#6c687f", 
             axes_color = "#77738c", 
@@ -64,8 +64,8 @@ class Theme():
             hist_color = "white"
         )
     
-    @classmethod
-    def dark_magic_girl(cls):
+    @staticmethod
+    def dark_magic_girl():
         return Theme(
             figure_color = "#071823", 
             axes_color = "#091f2c", 
@@ -77,8 +77,8 @@ class Theme():
             hist_color = "#f5b1cc"
         )
     
-    @classmethod
-    def superuser(cls):
+    @staticmethod
+    def superuser():
         return Theme(
             figure_color = "#1f232c", 
             axes_color = "#262a33", 
@@ -90,8 +90,8 @@ class Theme():
             hist_color = "white"
         )
     
-    @classmethod
-    def sewing_tin_light(cls):
+    @staticmethod
+    def sewing_tin_light():
         return Theme(
             figure_color = "#c8cedf", 
             axes_color = "#ffffff", 
@@ -103,8 +103,8 @@ class Theme():
             hist_color = "#2d2076"
         )
     
-    @classmethod
-    def miami(cls):
+    @staticmethod
+    def miami():
         return Theme(
             figure_color = "#0f0f10", 
             axes_color = "#18181a", 
@@ -116,8 +116,8 @@ class Theme():
             hist_color = "#e4609b"
         )
     
-    @classmethod
-    def get_theme(cls, variant: ThemeVariant):
+    @staticmethod
+    def get_theme(variant: ThemeVariant):
         match variant:
             case ThemeVariant.SHADOW:
                 return Theme.shadow()

@@ -3,6 +3,9 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.axes import Axes
+from matplotlib.backend_bases import MouseEvent
+from matplotlib.collections import PathCollection
+from matplotlib.lines import Line2D
 
 from livesplit_data import LiveSplitData
 from theme import Theme
@@ -19,12 +22,24 @@ class Plot():
         self.split_index = split_index
         self.theme = theme
         self.show_outliers = show_outliers
+        self.scatter_data = []
         
         self.fig.patch.set_facecolor(self.theme.figure_color)
         self.ax.set_facecolor(self.theme.axes_color)
         self.ax.tick_params(colors=self.theme.ticks_color)
         self.ax.xaxis.label.set_color(self.theme.xy_label_color)
         self.ax.yaxis.label.set_color(self.theme.xy_label_color)
+
+        # annotation init
+        self.annot = self.ax.annotate("", xy=(0,0), xytext=(-50,17),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+        self.annot.get_bbox_patch().set_facecolor("white")
+        self.annot.get_bbox_patch().set_alpha(0.8)
+        self.annot.set_zorder(100)
+
+        self.annot.set_visible(False)
+        
 
     def hist(self, seg_times):
         ''' 
@@ -53,7 +68,7 @@ class Plot():
     
     def moving_avg(self, seg_times, seg_indexes, avg_times, avg_indexes):
         #draw graph
-        self.sc = self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
+        self.scatter_data = self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         #set ticks
@@ -71,21 +86,15 @@ class Plot():
 
         self.seg_times = seg_times
 
-        self.annot = self.ax.annotate("", xy=(0,0), xytext=(15,15),textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"))
-        self.annot.set_visible(False)
-
-
         return self.fig
 
     def attempts_over_time(self):
         AOT_dates = self.lsd.AOT_dates
         AOT_attempts = self.lsd.AOT_attempts
-        interval_dates = self.lsd.get_dynamic_interval(AOT_dates, ticks=6, format='%Y-%m-%d')
 
         self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color)
-
+        
+        interval_dates = self.lsd.get_dynamic_interval(AOT_dates, ticks=6, format='%Y-%m-%d')
         self.ax.set_xticks(interval_dates)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
 
@@ -221,30 +230,64 @@ class Plot():
 
         return self.fig
 
-    def hover(self, event):
-        vis = self.annot.get_visible()
-        if event.inaxes == self.ax:
-            cont, ind = self.sc.contains(event)
-            print(f"{cont} {ind}")
-            if cont:
-                self.update_annot(ind)
-                self.annot.set_visible(True)
-                self.fig.canvas.draw_idle()
-            else:
-                if vis:
-                    self.annot.set_visible(False)
-                    self.fig.canvas.draw_idle()
+    def hover_plot(self, event: MouseEvent):
+        plot_data: list[Line2D] = self.ax.get_lines()
+        if event.inaxes != self.ax or len(plot_data) < 1:
+            return
 
-    def update_annot(self, ind):
-        pos = self.sc.get_offsets()[ind["ind"][0]]
+        line = plot_data[0]
+        hovering_over_line, pointlist = line.contains(event)
+
+        if hovering_over_line:
+            self.update_plot_annot(pointlist, line)
+            self.annot.set_visible(True)
+            self.fig.canvas.draw_idle()
+        else:
+            if self.annot.get_visible():
+                self.annot.set_visible(False)
+                self.fig.canvas.draw_idle()
+
+    def update_plot_annot(self, pointlist: dict, line: Line2D):
+        index = pointlist["ind"][0]
+        day: datetime = line.get_xdata()[index]
+        day = day.strftime("%b %d %Y")
+        total_attempts = line.get_ydata()[index]
+
+        # check for first index
+        total_attempts_previous_session = line.get_ydata()[index-1]
+        if index == 0:
+            total_attempts_previous_session = 0
+        daily_attempts = total_attempts - total_attempts_previous_session
+
+        # set coordinates for annotation object relative to object being annotated
+        pos = line.get_xydata()[index]
         self.annot.xy = pos
 
-        attempt_num = ind["ind"][0] + 1
-        formatted_time = self.seg_times[attempt_num-1].strftime("%M:%S.%f")[:9]
-        self.annot.set_text(f"{attempt_num}\n{formatted_time}")
+        self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nDate: {day}")
 
-        self.annot.get_bbox_patch().set_facecolor("white")
-        self.annot.get_bbox_patch().set_alpha(0.8)
+    def hover(self, event: MouseEvent, scatter_data: PathCollection):
+        if event.inaxes != self.ax:
+            return
+        
+        hovering_over_scatter_point, points_on_x_axis = scatter_data.contains(event)
+
+        if hovering_over_scatter_point:
+            self.update_annot(points_on_x_axis, scatter_data)
+            self.annot.set_visible(True)
+            self.fig.canvas.draw_idle()
+        else:
+            if self.annot.get_visible():
+                self.annot.set_visible(False)
+                self.fig.canvas.draw_idle()
+
+    def update_annot(self, points_on_x_axis: dict, scatter_data: PathCollection):
+        pos = scatter_data.get_offsets()[points_on_x_axis["ind"][0]]
+        self.annot.xy = pos
+
+        attempt_num = points_on_x_axis["ind"][0] + 1
+        formatted_time = self.seg_times[attempt_num-1].strftime("%M:%S.%f")[:9]
+
+        self.annot.set_text(f"{attempt_num}\n{formatted_time}")
 
 
     def set_axes_headers(self, title, title_color):

@@ -97,8 +97,13 @@ class Window(QMainWindow, Ui_MainWindow):
                     avg_indexes = self.lsd.avg_seg_indexes_NO
         
                 fig = plot.moving_avg(seg_times, seg_indexes, avg_times, avg_indexes)
+
+                # have to call this here, doesn't work in Plot class
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None, scatter_data=plot.scatter_data : plot.hover(event, scatter_data))
             case "Attempts Over Time":
                 fig = plot.attempts_over_time()
+
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event))
             case "Improvement Over Attempts":
                 fig = plot.imp_over_attempts()
             case "Improvement Over Time":
@@ -117,14 +122,10 @@ class Window(QMainWindow, Ui_MainWindow):
         # TODO why is this here?
         plt.grid()
         plt.tight_layout()
-        
 
         # remove old graph or placeholder
         self.removeGraphAndToolbar()
         self.graph_placeholder.setParent(None)
-
-        self.shit = plot.hover
-        self.poop = fig.canvas.mpl_connect("motion_notify_event", self.shit)
 
         # define new graph and toolbar
         self.currentGraph = FigureCanvasQTAgg(fig)

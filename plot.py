@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -22,7 +22,6 @@ class Plot():
         self.split_index = split_index
         self.theme = theme
         self.show_outliers = show_outliers
-        self.scatter_data = []
         
         self.fig.patch.set_facecolor(self.theme.figure_color)
         self.ax.set_facecolor(self.theme.axes_color)
@@ -68,7 +67,7 @@ class Plot():
     
     def moving_avg(self, seg_times, seg_indexes, avg_times, avg_indexes):
         #draw graph
-        self.scatter_data = self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
+        self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         #set ticks
@@ -230,7 +229,14 @@ class Plot():
 
         return self.fig
 
-    def hover_plot(self, event: MouseEvent):
+    def hover_plot(self, event: MouseEvent, type_graph):
+        """
+        Check when hovering over a plot line, proceed to update the annotation.
+
+        Depending on the `type_graph` different update functions are called. This is because 
+        different graphs require different annotations with different data types.
+        """
+
         plot_data: list[Line2D] = self.ax.get_lines()
         if event.inaxes != self.ax or len(plot_data) < 1:
             return
@@ -239,7 +245,11 @@ class Plot():
         hovering_over_line, pointlist = line.contains(event)
 
         if hovering_over_line:
-            self.update_plot_annot(pointlist, line)
+            match type_graph:
+                case "Attempts Over Time":
+                    self.update_attempts_over_time_annot(pointlist, line)
+                case "PB Over Time":
+                    self.update_pb_over_time_annot(pointlist, line)
             self.annot.set_visible(True)
             self.fig.canvas.draw_idle()
         else:
@@ -247,7 +257,34 @@ class Plot():
                 self.annot.set_visible(False)
                 self.fig.canvas.draw_idle()
 
-    def update_plot_annot(self, pointlist: dict, line: Line2D):
+    def update_pb_over_time_annot(self, pointlist: dict, line: Line2D):
+        """
+        Format the data for the PB Over Time graph and update the annotation.
+        """
+        index = pointlist["ind"][0]
+        day: datetime = line.get_xdata()[index]
+        day = day.strftime("%b %d %Y")
+        pb_time: datetime = line.get_ydata()[index]
+        
+        improved_by = "_"
+        if index != 0:  
+            previous_pb_time: datetime = line.get_ydata()[index-1]
+            difference = previous_pb_time - pb_time
+            improved_by = self.format_timedelta(difference)
+
+        
+        pb_time = pb_time.strftime("%H:%M:%S.%f")[:10]
+
+        # set coordinates for annotation object relative to object being annotated
+        pos = line.get_xydata()[index]
+        self.annot.xy = pos
+
+        self.annot.set_text(f"#{index+1}\n{day}\n\nPB: {pb_time}\nImproved by {improved_by}")
+
+    def update_attempts_over_time_annot(self, pointlist: dict, line: Line2D):
+        """
+        Format the data for the Attempts Over Time graph and update the annotation.
+        """
         index = pointlist["ind"][0]
         day: datetime = line.get_xdata()[index]
         day = day.strftime("%b %d %Y")
@@ -265,14 +302,18 @@ class Plot():
 
         self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nDate: {day}")
 
-    def hover(self, event: MouseEvent, scatter_data: PathCollection):
+    def hover_scatter(self, event: MouseEvent):
+        """
+        Check when hovering over a scatter node, proceed to update the annotation.
+        """
         if event.inaxes != self.ax:
             return
         
+        scatter_data = self.ax.collections[0]
         hovering_over_scatter_point, points_on_x_axis = scatter_data.contains(event)
 
         if hovering_over_scatter_point:
-            self.update_annot(points_on_x_axis, scatter_data)
+            self.update_scatter_annot(points_on_x_axis, scatter_data)
             self.annot.set_visible(True)
             self.fig.canvas.draw_idle()
         else:
@@ -280,15 +321,14 @@ class Plot():
                 self.annot.set_visible(False)
                 self.fig.canvas.draw_idle()
 
-    def update_annot(self, points_on_x_axis: dict, scatter_data: PathCollection):
+    def update_scatter_annot(self, points_on_x_axis: dict, scatter_data: PathCollection):
         pos = scatter_data.get_offsets()[points_on_x_axis["ind"][0]]
         self.annot.xy = pos
 
         attempt_num = points_on_x_axis["ind"][0] + 1
         formatted_time = self.seg_times[attempt_num-1].strftime("%M:%S.%f")[:9]
 
-        self.annot.set_text(f"{attempt_num}\n{formatted_time}")
-
+        self.annot.set_text(f"#{attempt_num}\n{formatted_time}")
 
     def set_axes_headers(self, title, title_color):
         game_name = self.lsd.game_name
@@ -316,3 +356,26 @@ class Plot():
             variable_string = f"({variable_string})"
 
         self.ax.set_title(f"{game_name} - {category} {variable_string}\n{title}", color=title_color, loc='center', wrap=True)
+
+    def format_timedelta(self, td: timedelta) -> str:
+        """
+        Helper function that converts a `timedelta` object to a user friendly string.
+
+        Examples: `2h 24m 10s` or `17m 56s` or `28s`
+
+        Takes a parameter of type `timedelta`.
+        """
+        seconds = td.seconds
+        hours = seconds // 3600
+        minutes = (seconds - (hours*3600)) // 60
+        remaining_seconds = seconds - (hours*3600) - (minutes*60)
+
+        formatted_str = ""
+        if hours != 0:
+            formatted_str += f"{hours}h "
+        if minutes != 0:
+            formatted_str += f"{minutes}m "
+        if remaining_seconds != 0:
+            formatted_str += f"{remaining_seconds}.{str(td.microseconds)[:1]}s "
+
+        return formatted_str

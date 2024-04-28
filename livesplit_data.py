@@ -142,6 +142,7 @@ class LiveSplitData():
 
         self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
         self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)
+
         
     def get_averages(self, seg_times) -> tuple:
         avg_times, avg_indexes = [], []

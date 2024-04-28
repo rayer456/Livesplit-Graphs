@@ -99,11 +99,11 @@ class Window(QMainWindow, Ui_MainWindow):
                 fig = plot.moving_avg(seg_times, seg_indexes, avg_times, avg_indexes)
 
                 # have to call this here, doesn't work in Plot class
-                fig.canvas.mpl_connect("motion_notify_event", lambda event=None, scatter_data=plot.scatter_data : plot.hover(event, scatter_data))
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_scatter(event))
             case "Attempts Over Time":
                 fig = plot.attempts_over_time()
 
-                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event))
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="Attempts Over Time"))
             case "Improvement Over Attempts":
                 fig = plot.imp_over_attempts()
             case "Improvement Over Time":
@@ -112,6 +112,8 @@ class Window(QMainWindow, Ui_MainWindow):
                 fig = plot.finished_runs_over_time()
             case "PB Over Time":
                 fig = plot.personal_best_over_time()
+
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Time"))
             case "PB Over Attempts":
                 fig = plot.personal_best_over_attempts()
             case _:

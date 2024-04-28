@@ -250,6 +250,8 @@ class Plot():
                     self.update_attempts_over_time_annot(pointlist, line)
                 case "PB Over Time":
                     self.update_pb_over_time_annot(pointlist, line)
+                case "PB Over Attempts":
+                    return
             self.annot.set_visible(True)
             self.fig.canvas.draw_idle()
         else:

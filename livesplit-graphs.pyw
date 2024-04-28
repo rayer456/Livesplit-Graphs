@@ -4,12 +4,14 @@ import gc
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QSizePolicy, QButtonGroup, QWidget
 from PyQt6 import QtGui
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
 from ui.main_window_ui import Ui_MainWindow
 from livesplit_data import LiveSplitData
 from plot import Plot
 from theme import Theme
+from graph import Graph
 
 
 class Window(QMainWindow, Ui_MainWindow):
@@ -61,6 +63,26 @@ class Window(QMainWindow, Ui_MainWindow):
         if self.listSplits.currentItem() is None:
             self.listSplits.setCurrentRow(0)
 
+        # remove old graph or placeholder
+        self.removeGraphAndToolbar()
+
+
+        # define new graph and toolbar
+        fig = self.getFigure(Graph(checkedButton.text()))
+        self.currentGraph = FigureCanvasQTAgg(fig)
+        self.currentGraph.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding))
+        self.currentToolbar = NavigationToolbar(canvas=self.currentGraph, parent=self)
+        self.currentToolbar.setStyleSheet("background-color: white;")
+
+        # TODO why is this here?
+        plt.grid()
+        plt.tight_layout()
+
+        # add new graph to layout
+        self.graph_layout.addWidget(self.currentToolbar)
+        self.graph_layout.addWidget(self.currentGraph)     
+            
+    def getFigure(self, graph: Graph) -> Figure:
         plot = Plot(
             livesplit_data=self.lsd, 
             split_name=self.listSplits.currentItem().text(), 
@@ -70,8 +92,8 @@ class Window(QMainWindow, Ui_MainWindow):
         )
 
         # generate figure object
-        match checkedButton.text():
-            case "Histogram":
+        match graph:
+            case Graph.HISTOGRAM:
                 self.lsd.extract_segment_data(self.listSplits.currentRow())
 
                 if not self.check_showOutliers.isChecked():
@@ -81,7 +103,7 @@ class Window(QMainWindow, Ui_MainWindow):
                     seg_times = self.lsd.seg_times
 
                 fig = plot.hist(seg_times)
-            case "Moving Average":
+            case Graph.MOVING_AVERAGE:
                 self.lsd.extract_segment_data(self.listSplits.currentRow())
 
                 if self.check_showOutliers.isChecked():
@@ -100,46 +122,27 @@ class Window(QMainWindow, Ui_MainWindow):
 
                 # have to call this here, doesn't work in Plot class
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_scatter(event))
-            case "Attempts Over Time":
+            case Graph.ATTEMPTS_OVER_TIME:
                 fig = plot.attempts_over_time()
-
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="Attempts Over Time"))
-            case "Improvement Over Attempts":
+            case Graph.IMP_OVER_ATTEMPTS:
                 fig = plot.imp_over_attempts()
-            case "Improvement Over Time":
+            case Graph.IMP_OVER_TIME: 
                 fig = plot.imp_over_time()
-            case "Finished Runs Over Time":
+            case Graph.FINISHED_RUNS_OVER_TIME:
                 fig = plot.finished_runs_over_time()
-            case "PB Over Time":
+            case Graph.PB_OVER_TIME:
                 fig = plot.personal_best_over_time()
-
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Time"))
-            case "PB Over Attempts":
+            case Graph.PB_OVER_ATTEMPTS:
                 fig = plot.personal_best_over_attempts()
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Attempts"))
             case _:
                 print("Forgot to add case")
                 return
         
+        return fig
 
-        # TODO why is this here?
-        plt.grid()
-        plt.tight_layout()
-
-        # remove old graph or placeholder
-        self.removeGraphAndToolbar()
-        self.graph_placeholder.setParent(None)
-
-        # define new graph and toolbar
-        self.currentGraph = FigureCanvasQTAgg(fig)
-        self.currentGraph.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding))
-        self.currentToolbar = NavigationToolbar(canvas=self.currentGraph, parent=self)
-        self.currentToolbar.setStyleSheet("background-color: white;")
-
-        # add new graph to layout
-        self.graph_layout.addWidget(self.currentToolbar)
-        self.graph_layout.addWidget(self.currentGraph)     
-            
-        
     def removeCurrentGraph(self):
         if self.currentGraph is None:
             return
@@ -160,6 +163,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def removeGraphAndToolbar(self):
         self.removeCurrentGraph()
         self.removeCurrentToolbar()
+        self.graph_placeholder.setParent(None)
         gc.collect()
     
     def setTheme(self, theme):

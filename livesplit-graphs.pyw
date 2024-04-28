@@ -137,7 +137,7 @@ class Window(QMainWindow, Ui_MainWindow):
                 fig = plot.personal_best_over_attempts()
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Attempts"))
             case _:
-                print("Forgot to add case")
+                NotImplementedError("Graph not implemented.")
                 return
         
         return fig
@@ -168,7 +168,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def getTheme(self, theme_str: str):
         theme_variant = ThemeVariant.from_str(theme_str)
         return Theme.get_theme(variant=theme_variant)
-
+    
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import Enum, unique
 
-
+@unique
 class Graph(Enum):
     HISTOGRAM = "Histogram"
     MOVING_AVERAGE = "Moving Average"
@@ -10,7 +10,6 @@ class Graph(Enum):
     FINISHED_RUNS_OVER_TIME = "Finished Runs Over Time"
     PB_OVER_TIME = "PB Over Time"
     PB_OVER_ATTEMPTS = "PB Over Attempts"
-
 
     @staticmethod
     def from_str(label):

@@ -10,7 +10,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from ui.main_window_ui import Ui_MainWindow
 from livesplit_data import LiveSplitData
 from plot import Plot
-from theme import Theme
+from theme import Theme, ThemeVariant
 from graph import Graph
 
 
@@ -66,7 +66,6 @@ class Window(QMainWindow, Ui_MainWindow):
         # remove old graph or placeholder
         self.removeGraphAndToolbar()
 
-
         # define new graph and toolbar
         fig = self.getFigure(Graph(checkedButton.text()))
         self.currentGraph = FigureCanvasQTAgg(fig)
@@ -87,7 +86,7 @@ class Window(QMainWindow, Ui_MainWindow):
             livesplit_data=self.lsd, 
             split_name=self.listSplits.currentItem().text(), 
             split_index=self.listSplits.currentRow(),
-            theme=self.setTheme(self.color_options.currentText()), 
+            theme=self.getTheme(self.color_options.currentText()), 
             show_outliers=self.check_showOutliers.isChecked()
         )
 
@@ -166,74 +165,10 @@ class Window(QMainWindow, Ui_MainWindow):
         self.graph_placeholder.setParent(None)
         gc.collect()
     
-    def setTheme(self, theme):
-        match theme:
-            case "Shadow":
-                return Theme(
-                    figure_color = "black", 
-                    axes_color = "black", 
-                    title_color = "white", 
-                    ticks_color = "white", 
-                    xy_label_color = "white",
-                    plot_color = "magenta",
-                    scatter_color = "white",
-                    hist_color = "white"
-                )
-            case "Alpine":
-                return Theme(
-                    figure_color = "#6c687f", 
-                    axes_color = "#77738c", 
-                    title_color = "white", 
-                    ticks_color = "white", 
-                    xy_label_color = "white",
-                    plot_color = "red",
-                    scatter_color = "white",
-                    hist_color = "white"
-                )
-            case "Dark Magic Girl":
-                return Theme(
-                    figure_color = "#071823", 
-                    axes_color = "#091f2c", 
-                    title_color = "white", 
-                    ticks_color = "white", 
-                    xy_label_color = "white",
-                    plot_color = "#81cfbe",
-                    scatter_color = "#f5b1cc",
-                    hist_color = "#f5b1cc"
-                )
-            case "Superuser":
-                return Theme(
-                    figure_color = "#1f232c", 
-                    axes_color = "#262a33", 
-                    title_color = "#43ffaf", 
-                    ticks_color = "#43ffaf", 
-                    xy_label_color = "#43ffaf",
-                    plot_color = "white",
-                    scatter_color = "#43ffaf",
-                    hist_color = "white"
-                )
-            case "Sewing Tin Light":
-                return Theme(
-                    figure_color = "#c8cedf", 
-                    axes_color = "#ffffff", 
-                    title_color = "#2d2076", 
-                    ticks_color = "#2d2076", 
-                    xy_label_color = "#2d2076",
-                    plot_color = "black",
-                    scatter_color = "#2d2076",
-                    hist_color = "#2d2076"
-                )
-            case "Miami":
-                return Theme(
-                    figure_color = "#0f0f10", 
-                    axes_color = "#18181a", 
-                    title_color = "#e4609b", 
-                    ticks_color = "#e4609b", 
-                    xy_label_color = "#e4609b",
-                    plot_color = "white",
-                    scatter_color = "#e4609b",
-                    hist_color = "#e4609b"
-                )
+    def getTheme(self, theme_str: str):
+        theme_variant = ThemeVariant.from_str(theme_str)
+        return Theme.get_theme(variant=theme_variant)
+
 
 
 if __name__ == "__main__":

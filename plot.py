@@ -1,7 +1,8 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.axes import Axes
-
 
 from livesplit_data import LiveSplitData
 from theme import Theme
@@ -52,7 +53,7 @@ class Plot():
     
     def moving_avg(self, seg_times, seg_indexes, avg_times, avg_indexes):
         #draw graph
-        self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
+        self.sc = self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         #set ticks
@@ -67,6 +68,14 @@ class Plot():
         self.ax.set_xlabel("Attempts")
         self.ax.set_ylabel("Split Time")
         self.ax.set_axisbelow(True)
+
+        self.seg_times = seg_times
+
+        self.annot = self.ax.annotate("", xy=(0,0), xytext=(15,15),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+        self.annot.set_visible(False)
+
 
         return self.fig
 
@@ -209,7 +218,34 @@ class Plot():
         self.ax.set_ylabel("Run Time")
         self.ax.set_axisbelow(True)
 
+
         return self.fig
+
+    def hover(self, event):
+        vis = self.annot.get_visible()
+        if event.inaxes == self.ax:
+            cont, ind = self.sc.contains(event)
+            print(f"{cont} {ind}")
+            if cont:
+                self.update_annot(ind)
+                self.annot.set_visible(True)
+                self.fig.canvas.draw_idle()
+            else:
+                if vis:
+                    self.annot.set_visible(False)
+                    self.fig.canvas.draw_idle()
+
+    def update_annot(self, ind):
+        pos = self.sc.get_offsets()[ind["ind"][0]]
+        self.annot.xy = pos
+
+        attempt_num = ind["ind"][0] + 1
+        formatted_time = self.seg_times[attempt_num-1].strftime("%M:%S.%f")[:9]
+        self.annot.set_text(f"{attempt_num}\n{formatted_time}")
+
+        self.annot.get_bbox_patch().set_facecolor("white")
+        self.annot.get_bbox_patch().set_alpha(0.8)
+
 
     def set_axes_headers(self, title, title_color):
         game_name = self.lsd.game_name

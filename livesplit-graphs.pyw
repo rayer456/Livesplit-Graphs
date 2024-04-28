@@ -13,7 +13,7 @@ from theme import Theme
 
 
 class Window(QMainWindow, Ui_MainWindow):
-    currentGraph: QWidget | None = None
+    currentGraph: FigureCanvasQTAgg | None = None
     currentToolbar: NavigationToolbar | None = None
     lsd: LiveSplitData | None = None
 
@@ -77,7 +77,6 @@ class Window(QMainWindow, Ui_MainWindow):
                 if not self.check_showOutliers.isChecked():
                     self.lsd.remove_segment_outliers()
                     seg_times = self.lsd.seg_times_NO
-                    self.lsd.seg_times_NO
                 else:
                     seg_times = self.lsd.seg_times
 
@@ -114,13 +113,18 @@ class Window(QMainWindow, Ui_MainWindow):
                 print("Forgot to add case")
                 return
         
+
         # TODO why is this here?
         plt.grid()
         plt.tight_layout()
+        
 
         # remove old graph or placeholder
         self.removeGraphAndToolbar()
         self.graph_placeholder.setParent(None)
+
+        self.shit = plot.hover
+        self.poop = fig.canvas.mpl_connect("motion_notify_event", self.shit)
 
         # define new graph and toolbar
         self.currentGraph = FigureCanvasQTAgg(fig)
@@ -131,8 +135,8 @@ class Window(QMainWindow, Ui_MainWindow):
         # add new graph to layout
         self.graph_layout.addWidget(self.currentToolbar)
         self.graph_layout.addWidget(self.currentGraph)     
-    
             
+        
     def removeCurrentGraph(self):
         if self.currentGraph is None:
             return

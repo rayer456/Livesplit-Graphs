@@ -377,7 +377,10 @@ class Plot():
             formatted_str += f"{hours}h "
         if minutes != 0:
             formatted_str += f"{minutes}m "
-        if remaining_seconds != 0 or td.microseconds !=0:
+
+        if hours == 0 and minutes == 0:
             formatted_str += f"{remaining_seconds}.{str(td.microseconds)[:1]}s "
+        elif remaining_seconds != 0:
+            formatted_str += f"{remaining_seconds}s "
 
         return formatted_str

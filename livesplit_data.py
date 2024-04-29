@@ -246,5 +246,4 @@ class LiveSplitData():
         self.seg_times_NO = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
         
         self.seg_indexes_NO = [i for i in range(1, len(self.seg_times_NO)+1)]
-
         self.avg_seg_times_NO, self.avg_seg_indexes_NO = self.get_averages(self.seg_times_NO)

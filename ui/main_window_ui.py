@@ -28,6 +28,8 @@ class Ui_MainWindow(object):
 "    color: white;\n"
 "    background-color: rgba(66, 66, 66, 1.0);\n"
 "    border-radius :7px;\n"
+"    font-size: 10.5pt;\n"
+"    font-weight: 600;\n"
 "}\n"
 "\n"
 ".option_button:hover {\n"
@@ -65,8 +67,7 @@ class Ui_MainWindow(object):
         self.color_options = QtWidgets.QComboBox(parent=self.centralwidget)
         self.color_options.setMinimumSize(QtCore.QSize(0, 20))
         self.color_options.setStyleSheet("QComboBox {\n"
-"    border: 0px;\n"
-"    border-radius: 7px;\n"
+"    border-radius: 3px;\n"
 "    padding: 3px;\n"
 "    background-color: white;\n"
 "    font: 17px;\n"
@@ -92,18 +93,19 @@ class Ui_MainWindow(object):
         self.listSplits.setFont(font)
         self.listSplits.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.listSplits.setAutoFillBackground(False)
-        self.listSplits.setStyleSheet("QListWidget#listSplits {\n"
+        self.listSplits.setStyleSheet("QListWidget {\n"
 "    color: white;\n"
 "    background-color: rgb(66, 66, 66);\n"
-"    border-radius: 7px\n"
+"    border-radius: 7px;\n"
+"    outline: none;\n"
 "}\n"
 "\n"
-"QListWidget#listSplits:item:hover {\n"
+"QListWidget:item:hover {\n"
 "    color: white;\n"
 "    background-color: rgb(50, 50, 50);\n"
 "}\n"
 "\n"
-"QListWidget#listSplits:item:selected {\n"
+"QListWidget:item:selected {\n"
 "    color: rgb(66,66,66);\n"
 "    background-color: rgb(89, 197, 255);\n"
 "}\n"
@@ -135,7 +137,7 @@ class Ui_MainWindow(object):
         self.option_attemptsOverTime.setMinimumSize(QtCore.QSize(0, 40))
         self.option_attemptsOverTime.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         font.setKerning(True)
         self.option_attemptsOverTime.setFont(font)
         self.option_attemptsOverTime.setFocusPolicy(QtCore.Qt.FocusPolicy.WheelFocus)
@@ -156,7 +158,7 @@ class Ui_MainWindow(object):
         self.option_finishedRunsOverTime.setMinimumSize(QtCore.QSize(0, 40))
         self.option_finishedRunsOverTime.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_finishedRunsOverTime.setFont(font)
         self.option_finishedRunsOverTime.setCheckable(True)
         self.option_finishedRunsOverTime.setChecked(False)
@@ -190,7 +192,7 @@ class Ui_MainWindow(object):
         self.option_impOverTime.setMinimumSize(QtCore.QSize(0, 40))
         self.option_impOverTime.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_impOverTime.setFont(font)
         self.option_impOverTime.setCheckable(True)
         self.option_impOverTime.setChecked(False)
@@ -207,7 +209,7 @@ class Ui_MainWindow(object):
         self.option_impOverAttempts.setMinimumSize(QtCore.QSize(0, 40))
         self.option_impOverAttempts.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_impOverAttempts.setFont(font)
         self.option_impOverAttempts.setCheckable(True)
         self.option_impOverAttempts.setChecked(False)
@@ -224,7 +226,7 @@ class Ui_MainWindow(object):
         self.option_hist.setMinimumSize(QtCore.QSize(0, 40))
         self.option_hist.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_hist.setFont(font)
         self.option_hist.setCheckable(True)
         self.option_hist.setChecked(False)
@@ -243,7 +245,7 @@ class Ui_MainWindow(object):
         self.option_movingAvg.setMinimumSize(QtCore.QSize(0, 40))
         self.option_movingAvg.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_movingAvg.setFont(font)
         self.option_movingAvg.setCheckable(True)
         self.option_movingAvg.setChecked(False)
@@ -260,7 +262,7 @@ class Ui_MainWindow(object):
         self.option_personalBestOverAttempts.setMinimumSize(QtCore.QSize(0, 40))
         self.option_personalBestOverAttempts.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_personalBestOverAttempts.setFont(font)
         self.option_personalBestOverAttempts.setCheckable(True)
         self.option_personalBestOverAttempts.setChecked(False)
@@ -277,7 +279,7 @@ class Ui_MainWindow(object):
         self.option_personalBestOverTime.setMinimumSize(QtCore.QSize(0, 40))
         self.option_personalBestOverTime.setMaximumSize(QtCore.QSize(16777215, 50))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         self.option_personalBestOverTime.setFont(font)
         self.option_personalBestOverTime.setCheckable(True)
         self.option_personalBestOverTime.setChecked(False)
@@ -312,9 +314,6 @@ class Ui_MainWindow(object):
         self.menuFile = QtWidgets.QMenu(parent=self.menubar)
         self.menuFile.setObjectName("menuFile")
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
         self.actionOpen = QtGui.QAction(parent=MainWindow)
         self.actionOpen.setObjectName("actionOpen")
         self.menuFile.addAction(self.actionOpen)
@@ -327,7 +326,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "Color Theme"))
+        self.label.setText(_translate("MainWindow", "Graph Theme"))
         self.color_options.setItemText(0, _translate("MainWindow", "Superuser"))
         self.color_options.setItemText(1, _translate("MainWindow", "Alpine"))
         self.color_options.setItemText(2, _translate("MainWindow", "Shadow"))

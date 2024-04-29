@@ -25,7 +25,6 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("Livesplit Graphs")
 
         self.listSplits.clear()
-        self.statusbar.hide()
         self.connectSignalsSlots()
 
         # REMOVE testing

@@ -50,10 +50,9 @@ class Plot():
         #draw graph
         self.ax.hist(seg_times, color=self.theme.hist_color)
 
-        #set ticks
-        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
-        self.ax.set_xticks(interval_times)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%M:%S"))
+        # x axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter('%M:%S')(x)
+        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
 
         #set headers
         self.set_axes_headers(title=f"{self.split_name} Histogram", title_color=self.theme.title_color)
@@ -70,10 +69,9 @@ class Plot():
         self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
-        #set ticks
-        interval_times = self.lsd.get_dynamic_interval(seg_times, ticks=9, format='%M:%S')
-        self.ax.set_yticks(interval_times)
-        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%M:%S"))
+        # y axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter('%M:%S')(x)
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(xfmt))
 
         #set headers
         self.set_axes_headers(title=f"{self.split_name} Time Over Attempts", title_color=self.theme.title_color)
@@ -92,10 +90,11 @@ class Plot():
         AOT_attempts = self.lsd.AOT_attempts
 
         self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color)
-        
-        interval_dates = self.lsd.get_dynamic_interval(AOT_dates, ticks=6, format='%Y-%m-%d')
-        self.ax.set_xticks(interval_dates)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
+
+        # x axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
+        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
 
         self.set_axes_headers(title="Attempts Over Time", title_color=self.theme.title_color)
         
@@ -111,9 +110,10 @@ class Plot():
 
         self.ax.plot(abs_indexes, completed_times, c=self.theme.plot_color, linewidth=1.5)
 
-        interval_times = self.lsd.get_dynamic_interval(completed_times, ticks=16, format='%H:%M:%S')
-        self.ax.set_yticks(interval_times)
-        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
+        # y axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%H:%M:%S")(x)
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.yaxis.set_major_locator(plt.MaxNLocator('auto'))
 
         self.set_axes_headers(title="Improvement Over Attempts", title_color=self.theme.title_color)
         self.ax.set_xlabel("Attempts")
@@ -127,17 +127,18 @@ class Plot():
         finished_times = self.lsd.finished_times
         interval_dates = self.lsd.get_dynamic_interval(finished_times, ticks=16, format='%H:%M:%S')
 
-        self.ax.scatter(finished_dates, finished_times, c=self.theme.scatter_color, s=5, alpha=1)
-
-        #intervals
-        interval_dates = self.lsd.get_dynamic_interval(finished_times, ticks=16, format='%H:%M:%S')
+        # self.ax.scatter(finished_dates, finished_times, c=self.theme.scatter_color, s=10, alpha=0.3)
         self.ax.fill_between(finished_dates, min(interval_dates), finished_times, facecolor=self.theme.scatter_color, alpha=0.5)
-        self.ax.set_yticks(interval_dates)
-        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 
-        interval_dates = self.lsd.get_dynamic_interval(finished_dates, ticks=6, format='%Y-%m-%d')
-        self.ax.set_xticks(interval_dates)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
+        # y axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%H:%M:%S")(x)
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.yaxis.set_major_locator(plt.MaxNLocator('auto'))
+
+        # x axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
+        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
 
         self.set_axes_headers(title="Improvement Over Time", title_color=self.theme.title_color)
         self.ax.set_xlabel("Date")
@@ -149,13 +150,13 @@ class Plot():
     def finished_runs_over_time(self):
         num_finished_runs = self.lsd.get_category_rel_indexes()
         finished_dates = self.lsd.finished_dates
-        interval_dates = self.lsd.get_dynamic_interval(finished_dates, ticks=6, 
-        format='%Y-%m-%d')
 
         self.ax.plot(finished_dates, num_finished_runs, c=self.theme.plot_color, linewidth=1.5)
 
-        self.ax.set_xticks(interval_dates)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
+        # x axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
+        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
 
         self.set_axes_headers(title="Finished Runs Over Time", title_color=self.theme.title_color)
         self.ax.set_xlabel("Date")
@@ -168,10 +169,8 @@ class Plot():
         """
         https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
         """
-
         pb_dates = self.lsd.pb_dates
         pb_times = self.lsd.pb_times
-        interval_dates = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
 
         self.ax.plot(
             pb_dates, 
@@ -184,15 +183,15 @@ class Plot():
             markeredgecolor=self.theme.scatter_color
         )
 
-        #intervals
-        interval_times = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
+        # y axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%H:%M:%S")(x)
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.yaxis.set_major_locator(plt.MaxNLocator('auto'))
 
-        self.ax.set_yticks(interval_times)
-        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-
-        interval_dates = self.lsd.get_dynamic_interval(pb_dates, ticks=6, format='%Y-%m-%d')
-        self.ax.set_xticks(interval_dates)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%b. %d '%y"))
+        # x axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
+        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
 
         self.set_axes_headers(title="Personal Best Over Time", title_color=self.theme.title_color)
         self.ax.set_xlabel("Date")
@@ -216,10 +215,10 @@ class Plot():
             markeredgecolor=self.theme.scatter_color
         )
 
-
-        interval_times = self.lsd.get_dynamic_interval(pb_times, ticks=16, format='%H:%M:%S')
-        self.ax.set_yticks(interval_times)
-        self.ax.yaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
+        # y axis formatting
+        xfmt = lambda x, pos: mdates.DateFormatter("%H:%M:%S")(x)
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(xfmt))
+        self.ax.yaxis.set_major_locator(plt.MaxNLocator('auto'))
 
         self.set_axes_headers(title="Personal Best Over Attempts", title_color=self.theme.title_color)
         self.ax.set_xlabel("Attempts")

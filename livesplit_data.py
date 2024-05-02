@@ -111,7 +111,7 @@ class LiveSplitData():
             - Average Segment Time every 10 times
             - Index for that Average Segment Time
         '''
-        self.seg_times, self.seg_indexes = [], []
+        seg_times = []
         self.bool_rows = []
         attempt_ids = []
         
@@ -137,7 +137,7 @@ class LiveSplitData():
                 
                 # remove last digit for microseconds as datetime.strptime() only allows up to 6 decimals after the decimal point, livesplit stores 7 at most
                 dt_time = datetime.datetime.strptime(t[:-1], '%H:%M:%S.%f')
-                self.seg_times.append(dt_time)
+                seg_times.append(dt_time)
 
                 if attempt_id == self.pb_id:
                     self.bool_rows.append(True)
@@ -153,12 +153,10 @@ class LiveSplitData():
                 #empty Time element
                 continue
 
-        self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
-        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)
+        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(seg_times)
 
         self.scatter_data = pd.DataFrame({
-            'seg_indexes': self.seg_indexes,
-            'seg_times': self.seg_times,
+            'seg_times': seg_times,
             'is_from_pb': self.bool_rows,
             'attempt_ids': attempt_ids,
         })
@@ -261,31 +259,16 @@ class LiveSplitData():
         return result
 
     def remove_segment_outliers(self):
-        times_in_seconds = []
-        for time in self.seg_times:
-            hours_in_seconds = time.hour * 3600
-            minutes_in_seconds = time.minute * 60
-            seconds = time.second
-            milliseconds = float(f"0.{datetime.datetime.strftime(time, format='%f')}")
-            
-            times_in_seconds.append(hours_in_seconds + minutes_in_seconds + seconds + milliseconds)
+        times_in_seconds = [self.convert_datetime_to_float(row['seg_times']) for _, row in self.scatter_data.iterrows()]
 
-        std_dev = pstdev(times_in_seconds)
-        n_mean = mean(times_in_seconds)
-        upper_limit = n_mean + std_dev * 3
-
-        # print(len(self.seg_times))
-
+        # remove row if outlier
+        upper_limit = mean(times_in_seconds) + pstdev(times_in_seconds) * 3
         for index, row in self.scatter_data.iterrows():
             time = self.convert_datetime_to_float(row['seg_times'])
             if time > upper_limit:
-                # remove row
                 self.scatter_data.drop(index, inplace=True)
         
         # refresh index 
         self.scatter_data.index = range(len(self.scatter_data))
 
-        self.seg_times = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
-        
-        self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
-        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)
+        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.scatter_data["seg_times"])

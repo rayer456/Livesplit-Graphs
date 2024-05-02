@@ -66,10 +66,10 @@ class Plot():
 
         return self.fig
     
-    def moving_avg(self, avg_times, avg_indexes, scatter_df):
+    def moving_avg(self, avg_times, avg_indexes, scatter_df: pd.DataFrame):
         #draw graph
         colors = np.where(scatter_df["is_from_pb"]==1,'red', self.theme.scatter_color)
-        self.ax.scatter(scatter_df["seg_indexes"], scatter_df["seg_times"], s=10, c=colors, alpha=0.3)
+        self.ax.scatter(scatter_df.index.values+1, scatter_df["seg_times"], s=10, c=colors, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         # y axis formatting

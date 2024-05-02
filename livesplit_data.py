@@ -2,6 +2,7 @@ import datetime
 from dateutil import relativedelta
 import xml.etree.ElementTree as ET
 from statistics import pstdev, mean
+import pandas as pd
 
 import variables
 
@@ -72,7 +73,9 @@ class LiveSplitData():
                 self.pb_times.append(finished_time)
                 pb_time = finished_time
                 self.pb_abs_indexes.append(i+1)
-        
+                # TODO this can crash
+                self.pb_id = int(attempt.attrib.get('id'))
+
         self.AOT_dates, self.AOT_attempts = [], []
 
         attempt_history = self.xroot.find('AttemptHistory')
@@ -101,7 +104,7 @@ class LiveSplitData():
     def get_category_rel_indexes(self):
         return [i+1 for i in range(len(self.finished_indexes))]
     
-    def extract_segment_data(self, segment_index: int):
+    def extract_segment_data(self, segment_index: int, show_outliers: bool):
         ''' Extracts following data with and without outliers:
             - Segment Times
             - Segment Indexes
@@ -109,12 +112,15 @@ class LiveSplitData():
             - Index for that Average Segment Time
         '''
         self.seg_times, self.seg_indexes = [], []
+        self.bool_rows = []
+        attempt_ids = []
         
         segment = self.segments[segment_index]
         segment_history = segment.find('SegmentHistory')
         for attempt in segment_history:
             try:
-                if int(attempt.attrib.get('id')) < 0:
+                attempt_id = int(attempt.attrib.get('id'))
+                if attempt_id < 0:
                     continue
 
                 # TODO add support for GameTime (no)
@@ -133,6 +139,13 @@ class LiveSplitData():
                 dt_time = datetime.datetime.strptime(t[:-1], '%H:%M:%S.%f')
                 self.seg_times.append(dt_time)
 
+                if attempt_id == self.pb_id:
+                    self.bool_rows.append(True)
+                else:
+                    self.bool_rows.append(False)
+
+                attempt_ids.append(attempt_id)
+
             except ValueError as e:
                 print(e)
                 continue
@@ -143,6 +156,15 @@ class LiveSplitData():
         self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
         self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)
 
+        self.scatter_data = pd.DataFrame({
+            'seg_indexes': self.seg_indexes,
+            'seg_times': self.seg_times,
+            'is_from_pb': self.bool_rows,
+            'attempt_ids': attempt_ids,
+        })
+
+        if not show_outliers:
+            self.remove_segment_outliers()
         
     def get_averages(self, seg_times) -> tuple:
         avg_times, avg_indexes = [], []
@@ -229,6 +251,15 @@ class LiveSplitData():
 
         return interval_dates
     
+    def convert_datetime_to_float(self, time: datetime.datetime) -> float:
+        hours_in_seconds = time.hour * 3600
+        minutes_in_seconds = time.minute * 60
+        seconds = time.second
+        milliseconds = float(f"0.{datetime.datetime.strftime(time, format='%f')}")
+        
+        result = hours_in_seconds + minutes_in_seconds + seconds + milliseconds
+        return result
+
     def remove_segment_outliers(self):
         times_in_seconds = []
         for time in self.seg_times:
@@ -243,7 +274,18 @@ class LiveSplitData():
         n_mean = mean(times_in_seconds)
         upper_limit = n_mean + std_dev * 3
 
-        self.seg_times_NO = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
+        # print(len(self.seg_times))
+
+        for index, row in self.scatter_data.iterrows():
+            time = self.convert_datetime_to_float(row['seg_times'])
+            if time > upper_limit:
+                # remove row
+                self.scatter_data.drop(index, inplace=True)
         
-        self.seg_indexes_NO = [i for i in range(1, len(self.seg_times_NO)+1)]
-        self.avg_seg_times_NO, self.avg_seg_indexes_NO = self.get_averages(self.seg_times_NO)
+        # refresh index 
+        self.scatter_data.index = range(len(self.scatter_data))
+
+        self.seg_times = [datetime.datetime(1900, 1, 1) + relativedelta.relativedelta(seconds=time) for time in times_in_seconds if time <= upper_limit]
+        
+        self.seg_indexes = [i for i in range(1, len(self.seg_times)+1)]
+        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.seg_times)

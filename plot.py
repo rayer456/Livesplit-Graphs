@@ -6,6 +6,8 @@ from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
+import pandas as pd
+import numpy as np
 
 from livesplit_data import LiveSplitData
 from theme import Theme
@@ -64,9 +66,10 @@ class Plot():
 
         return self.fig
     
-    def moving_avg(self, seg_times, seg_indexes, avg_times, avg_indexes):
+    def moving_avg(self, avg_times, avg_indexes, scatter_df):
         #draw graph
-        self.ax.scatter(seg_indexes, seg_times, s=10, c=self.theme.scatter_color, alpha=0.3)
+        colors = np.where(scatter_df["is_from_pb"]==1,'red', self.theme.scatter_color)
+        self.ax.scatter(scatter_df["seg_indexes"], scatter_df["seg_times"], s=10, c=colors, alpha=0.3)
         self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
 
         # y axis formatting
@@ -81,7 +84,7 @@ class Plot():
         self.ax.set_ylabel("Split Time")
         self.ax.set_axisbelow(True)
 
-        self.seg_times = seg_times
+        self.seg_times = scatter_df["seg_times"]
 
         return self.fig
 
@@ -225,7 +228,6 @@ class Plot():
         self.ax.set_ylabel("Run Time")
         self.ax.set_axisbelow(True)
 
-
         return self.fig
 
     def hover_plot(self, event: MouseEvent, type_graph):
@@ -328,7 +330,6 @@ class Plot():
 
         attempt_num = points_on_x_axis["ind"][0] + 1
         formatted_time = self.seg_times[attempt_num-1].strftime("%M:%S.%f")[:9]
-
         self.annot.set_text(f"#{attempt_num}\n{formatted_time}")
 
     def set_axes_headers(self, title, title_color):

@@ -92,31 +92,19 @@ class Window(QMainWindow, Ui_MainWindow):
         # generate figure object
         match graph:
             case Graph.HISTOGRAM:
-                self.lsd.extract_segment_data(self.listSplits.currentRow())
+                self.lsd.extract_segment_data(
+                    segment_index=self.listSplits.currentRow(),
+                    show_outliers=self.check_showOutliers.isChecked(),
+                )
 
-                if not self.check_showOutliers.isChecked():
-                    self.lsd.remove_segment_outliers()
-                    seg_times = self.lsd.seg_times_NO
-                else:
-                    seg_times = self.lsd.seg_times
-
-                fig = plot.hist(seg_times)
+                fig = plot.hist(self.lsd.seg_times)
             case Graph.MOVING_AVERAGE:
-                self.lsd.extract_segment_data(self.listSplits.currentRow())
-
-                if self.check_showOutliers.isChecked():
-                    seg_times = self.lsd.seg_times
-                    seg_indexes = self.lsd.seg_indexes
-                    avg_times = self.lsd.avg_seg_times
-                    avg_indexes = self.lsd.avg_seg_indexes
-                else:
-                    self.lsd.remove_segment_outliers()
-                    seg_times = self.lsd.seg_times_NO
-                    seg_indexes = self.lsd.seg_indexes_NO
-                    avg_times = self.lsd.avg_seg_times_NO
-                    avg_indexes = self.lsd.avg_seg_indexes_NO
+                self.lsd.extract_segment_data(
+                    segment_index=self.listSplits.currentRow(),
+                    show_outliers=self.check_showOutliers.isChecked(),
+                )
         
-                fig = plot.moving_avg(seg_times, seg_indexes, avg_times, avg_indexes)
+                fig = plot.moving_avg(self.lsd.avg_seg_times, self.lsd.avg_seg_indexes, self.lsd.scatter_data)
 
                 # have to call this here, doesn't work in Plot class
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_scatter(event))

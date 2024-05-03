@@ -28,7 +28,7 @@ class ThemeVariant(Enum):
             
     
 class Theme():
-    def __init__(self, figure_color, axes_color, title_color, ticks_color, xy_label_color, plot_color, scatter_color, hist_color):
+    def __init__(self, figure_color, axes_color, title_color, ticks_color, xy_label_color, plot_color, scatter_color, hist_color, plot2_color):
         self.figure_color = figure_color
         self.axes_color = axes_color
         self.title_color = title_color
@@ -37,18 +37,20 @@ class Theme():
         self.plot_color = plot_color
         self.scatter_color = scatter_color
         self.hist_color = hist_color
+        self.plot2_color = plot2_color
     
     @staticmethod
     def shadow():
         return Theme(
             figure_color = "black", 
             axes_color = "black", 
-            title_color = "white", 
-            ticks_color = "white", 
-            xy_label_color = "white",
+            title_color = "#444444", 
+            ticks_color = "#444444", 
+            xy_label_color = "#444444",
             plot_color = "magenta",
             scatter_color = "white",
-            hist_color = "white"
+            hist_color = "white",
+            plot2_color = "white",
         )
     
     @staticmethod
@@ -61,7 +63,8 @@ class Theme():
             xy_label_color = "white",
             plot_color = "red",
             scatter_color = "white",
-            hist_color = "white"
+            hist_color = "white",
+            plot2_color = "white",
         )
     
     @staticmethod
@@ -74,7 +77,8 @@ class Theme():
             xy_label_color = "white",
             plot_color = "#81cfbe",
             scatter_color = "#f5b1cc",
-            hist_color = "#f5b1cc"
+            hist_color = "#f5b1cc",
+            plot2_color = "#f5b1cc",
         )
     
     @staticmethod
@@ -87,7 +91,8 @@ class Theme():
             xy_label_color = "#43ffaf",
             plot_color = "white",
             scatter_color = "#43ffaf",
-            hist_color = "white"
+            hist_color = "white",
+            plot2_color = "#FF5F5F",
         )
     
     @staticmethod
@@ -100,7 +105,8 @@ class Theme():
             xy_label_color = "#2d2076",
             plot_color = "black",
             scatter_color = "#2d2076",
-            hist_color = "#2d2076"
+            hist_color = "#2d2076",
+            plot2_color = "#2d2076",
         )
     
     @staticmethod
@@ -112,8 +118,9 @@ class Theme():
             ticks_color = "#e4609b", 
             xy_label_color = "#e4609b",
             plot_color = "white",
-            scatter_color = "#e4609b",
-            hist_color = "#e4609b"
+            scatter_color = "#05DFD7",
+            hist_color = "#05DFD7",
+            plot2_color = "#05DFD7",
         )
     
     @staticmethod

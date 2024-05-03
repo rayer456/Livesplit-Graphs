@@ -97,14 +97,14 @@ class Window(QMainWindow, Ui_MainWindow):
                     show_outliers=self.check_showOutliers.isChecked(),
                 )
 
-                fig = plot.hist(self.lsd.seg_times)
+                fig = plot.hist(self.lsd.segment_times["seg_times"])
             case Graph.MOVING_AVERAGE:
                 self.lsd.extract_segment_data(
                     segment_index=self.listSplits.currentRow(),
                     show_outliers=self.check_showOutliers.isChecked(),
                 )
         
-                fig = plot.moving_avg(self.lsd.avg_seg_times, self.lsd.avg_seg_indexes, self.lsd.scatter_data)
+                fig = plot.moving_avg(self.lsd.segment_times, self.lsd.avg_segment_times)
 
                 # have to call this here, doesn't work in Plot class
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_scatter(event))
@@ -115,8 +115,6 @@ class Window(QMainWindow, Ui_MainWindow):
                 fig = plot.imp_over_attempts()
             case Graph.IMP_OVER_TIME: 
                 fig = plot.imp_over_time()
-            case Graph.FINISHED_RUNS_OVER_TIME:
-                fig = plot.finished_runs_over_time()
             case Graph.PB_OVER_TIME:
                 fig = plot.personal_best_over_time()
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Time"))

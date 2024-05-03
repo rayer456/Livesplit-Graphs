@@ -8,6 +8,9 @@ import variables
 
 
 class LiveSplitData():
+    avg_segment_times: pd.DataFrame
+    segment_times: pd.DataFrame
+    
     def __init__(self, path: str):
         self.set_XML_root(path)
         self.set_segments()
@@ -112,7 +115,7 @@ class LiveSplitData():
             - Index for that Average Segment Time
         '''
         seg_times = []
-        self.bool_rows = []
+        self.from_pb = []
         attempt_ids = []
         
         segment = self.segments[segment_index]
@@ -140,9 +143,9 @@ class LiveSplitData():
                 seg_times.append(dt_time)
 
                 if attempt_id == self.pb_id:
-                    self.bool_rows.append(True)
+                    self.from_pb.append(True)
                 else:
-                    self.bool_rows.append(False)
+                    self.from_pb.append(False)
 
                 attempt_ids.append(attempt_id)
 
@@ -153,18 +156,18 @@ class LiveSplitData():
                 #empty Time element
                 continue
 
-        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(seg_times)
+        self.avg_segment_times = self.get_averages(seg_times)
 
-        self.scatter_data = pd.DataFrame({
+        self.segment_times = pd.DataFrame({
             'seg_times': seg_times,
-            'is_from_pb': self.bool_rows,
+            'is_from_pb': self.from_pb,
             'attempt_ids': attempt_ids,
         })
 
         if not show_outliers:
             self.remove_segment_outliers()
         
-    def get_averages(self, seg_times) -> tuple:
+    def get_averages(self, seg_times) -> pd.DataFrame:
         avg_times, avg_indexes = [], []
         start, end = 0, 10
 
@@ -175,7 +178,11 @@ class LiveSplitData():
 
             start = end
             end += 10
-        return avg_times, avg_indexes
+            
+        return pd.DataFrame({
+            'avg_times': avg_times,
+            'avg_indexes': avg_indexes,
+        })
     
     def get_avg_HMS(self, values: list):
         '''
@@ -259,16 +266,16 @@ class LiveSplitData():
         return result
 
     def remove_segment_outliers(self):
-        times_in_seconds = [self.convert_datetime_to_float(row['seg_times']) for _, row in self.scatter_data.iterrows()]
+        times_in_seconds = [self.convert_datetime_to_float(row['seg_times']) for _, row in self.segment_times.iterrows()]
 
         # remove row if outlier
         upper_limit = mean(times_in_seconds) + pstdev(times_in_seconds) * 3
-        for index, row in self.scatter_data.iterrows():
+        for index, row in self.segment_times.iterrows():
             time = self.convert_datetime_to_float(row['seg_times'])
             if time > upper_limit:
-                self.scatter_data.drop(index, inplace=True)
+                self.segment_times.drop(index, inplace=True)
         
         # refresh index 
-        self.scatter_data.index = range(len(self.scatter_data))
+        self.segment_times.index = range(len(self.segment_times))
 
-        self.avg_seg_times, self.avg_seg_indexes = self.get_averages(self.scatter_data["seg_times"])
+        self.avg_segment_times = self.get_averages(self.segment_times["seg_times"])

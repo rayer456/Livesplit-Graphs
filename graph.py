@@ -7,7 +7,6 @@ class Graph(Enum):
     ATTEMPTS_OVER_TIME = "Attempts Over Time"
     IMP_OVER_TIME = "Improvement Over Time"
     IMP_OVER_ATTEMPTS = "Improvement Over Attempts"
-    FINISHED_RUNS_OVER_TIME = "Finished Runs Over Time"
     PB_OVER_TIME = "PB Over Time"
     PB_OVER_ATTEMPTS = "PB Over Attempts"
 
@@ -24,8 +23,6 @@ class Graph(Enum):
                 return Graph.IMP_OVER_TIME
             case 'imp over attempts'|'improvement over attempts':
                 return Graph.IMP_OVER_ATTEMPTS
-            case 'finished runs over time':
-                return Graph.FINISHED_RUNS_OVER_TIME
             case 'pb over time':
                 return Graph.PB_OVER_TIME
             case 'pb over attempts':

@@ -3,10 +3,12 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
 
 from livesplit_data import LiveSplitData
@@ -42,7 +44,7 @@ class Plot():
         self.annot.set_visible(False)
         
 
-    def hist(self, seg_times):
+    def hist(self, seg_times) -> Figure:
         ''' 
         Plot a histogram given `seg_times`.
 
@@ -66,11 +68,11 @@ class Plot():
 
         return self.fig
     
-    def moving_avg(self, avg_times, avg_indexes, scatter_df: pd.DataFrame):
+    def moving_avg(self, segment_times: DataFrame, avg_segment_times: DataFrame) -> Figure:
         #draw graph
-        colors = np.where(scatter_df["is_from_pb"]==1,'red', self.theme.scatter_color)
-        self.ax.scatter(scatter_df.index.values+1, scatter_df["seg_times"], s=10, c=colors, alpha=0.3)
-        self.ax.plot(avg_indexes, avg_times, linewidth=1.5, c=self.theme.plot_color)
+        colors = np.where(segment_times["is_from_pb"],'red', self.theme.scatter_color)
+        self.ax.scatter(segment_times.index.values+1, segment_times["seg_times"], s=10, c=colors, alpha=0.3)
+        self.ax.plot(avg_segment_times["avg_indexes"], avg_segment_times["avg_times"], linewidth=1.5, c=self.theme.plot_color)
 
         # y axis formatting
         xfmt = lambda x, pos: mdates.DateFormatter('%M:%S')(x)
@@ -84,15 +86,19 @@ class Plot():
         self.ax.set_ylabel("Split Time")
         self.ax.set_axisbelow(True)
 
-        self.seg_times = scatter_df["seg_times"]
+        self.seg_times = segment_times["seg_times"]
 
         return self.fig
 
-    def attempts_over_time(self):
+    def attempts_over_time(self) -> Figure:
         AOT_dates = self.lsd.AOT_dates
         AOT_attempts = self.lsd.AOT_attempts
 
-        self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color)
+        num_finished_runs = self.lsd.get_category_rel_indexes()
+        finished_dates = self.lsd.finished_dates
+
+        self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color, label="All")
+        self.ax.plot(finished_dates, num_finished_runs, c=self.theme.plot2_color, linewidth=1.5, label="Finished")
 
         # x axis formatting
         xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
@@ -100,14 +106,16 @@ class Plot():
         self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
 
         self.set_axes_headers(title="Attempts Over Time", title_color=self.theme.title_color)
-        
+
+        self.ax.legend(loc="upper left").set_draggable(True)
+
         self.ax.set_xlabel("Date")
         self.ax.set_ylabel("Attempts")
         self.ax.set_axisbelow(True)
 
         return self.fig
 
-    def imp_over_attempts(self):
+    def imp_over_attempts(self) -> Figure:
         completed_times = self.lsd.finished_times
         abs_indexes = self.lsd.finished_indexes
 
@@ -125,7 +133,7 @@ class Plot():
 
         return self.fig
 
-    def imp_over_time(self):
+    def imp_over_time(self) -> Figure:
         finished_dates = self.lsd.finished_dates
         finished_times = self.lsd.finished_times
         interval_dates = self.lsd.get_dynamic_interval(finished_times, ticks=16, format='%H:%M:%S')
@@ -150,25 +158,7 @@ class Plot():
 
         return self.fig
 
-    def finished_runs_over_time(self):
-        num_finished_runs = self.lsd.get_category_rel_indexes()
-        finished_dates = self.lsd.finished_dates
-
-        self.ax.plot(finished_dates, num_finished_runs, c=self.theme.plot_color, linewidth=1.5)
-
-        # x axis formatting
-        xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
-        self.ax.xaxis.set_major_formatter(plt.FuncFormatter(xfmt))
-        self.ax.xaxis.set_major_locator(plt.MaxNLocator(6))
-
-        self.set_axes_headers(title="Finished Runs Over Time", title_color=self.theme.title_color)
-        self.ax.set_xlabel("Date")
-        self.ax.set_ylabel("Finished Runs")
-        self.ax.set_axisbelow(True)
-
-        return self.fig
-
-    def personal_best_over_time(self):
+    def personal_best_over_time(self) -> Figure:
         """
         https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
         """
@@ -203,7 +193,7 @@ class Plot():
 
         return self.fig
     
-    def personal_best_over_attempts(self):
+    def personal_best_over_attempts(self) -> Figure:
         pb_times = self.lsd.pb_times
         pb_abs_indexes = self.lsd.pb_abs_indexes
 

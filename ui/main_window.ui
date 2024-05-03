@@ -589,52 +589,6 @@ QListWidget:item:selected {
             </attribute>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QPushButton" name="option_finishedRunsOverTime">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>11</pointsize>
-              <fontweight>DemiBold</fontweight>
-             </font>
-            </property>
-            <property name="text">
-             <string>Finished Runs Over Time</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-            <property name="autoExclusive">
-             <bool>true</bool>
-            </property>
-            <property name="class" stdset="0">
-             <string>option_button</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">option_buttons</string>
-            </attribute>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>

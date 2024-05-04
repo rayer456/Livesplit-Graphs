@@ -7,6 +7,7 @@ class ThemeVariant(Enum):
     SUPERUSER = "Superuser"
     SEWING_TIN_LIGHT = "Sewing Tin Light"
     MIAMI = "Miami"
+    DOTS = "Dots"
 
     @staticmethod
     def from_str(theme):
@@ -23,12 +24,14 @@ class ThemeVariant(Enum):
                 return ThemeVariant.SEWING_TIN_LIGHT
             case "miami":
                 return ThemeVariant.MIAMI
+            case "dots":
+                return ThemeVariant.DOTS
             case _:
                 raise NotImplementedError("This theme variant is not implemented")
             
     
 class Theme():
-    def __init__(self, figure_color, axes_color, title_color, ticks_color, xy_label_color, plot_color, scatter_color, hist_color, plot2_color):
+    def __init__(self, figure_color, axes_color, title_color, ticks_color, xy_label_color, plot_color, scatter_color, hist_color, plot2_color, pb_color):
         self.figure_color = figure_color
         self.axes_color = axes_color
         self.title_color = title_color
@@ -38,6 +41,7 @@ class Theme():
         self.scatter_color = scatter_color
         self.hist_color = hist_color
         self.plot2_color = plot2_color
+        self.pb_color = pb_color
     
     @staticmethod
     def shadow():
@@ -51,6 +55,7 @@ class Theme():
             scatter_color = "white",
             hist_color = "white",
             plot2_color = "white",
+            pb_color = "red",
         )
     
     @staticmethod
@@ -65,6 +70,7 @@ class Theme():
             scatter_color = "white",
             hist_color = "white",
             plot2_color = "white",
+            pb_color = "blue",
         )
     
     @staticmethod
@@ -79,6 +85,7 @@ class Theme():
             scatter_color = "#f5b1cc",
             hist_color = "#f5b1cc",
             plot2_color = "#f5b1cc",
+            pb_color = "#4373FF",
         )
     
     @staticmethod
@@ -93,6 +100,7 @@ class Theme():
             scatter_color = "#43ffaf",
             hist_color = "white",
             plot2_color = "#FF5F5F",
+            pb_color = "#FF3AFF",
         )
     
     @staticmethod
@@ -107,6 +115,7 @@ class Theme():
             scatter_color = "#2d2076",
             hist_color = "#2d2076",
             plot2_color = "#2d2076",
+            pb_color = "red",
         )
     
     @staticmethod
@@ -121,10 +130,26 @@ class Theme():
             scatter_color = "#05DFD7",
             hist_color = "#05DFD7",
             plot2_color = "#05DFD7",
+            pb_color = "#e4609b",
         )
     
     @staticmethod
-    def get_theme(variant: ThemeVariant):
+    def dots():
+        return Theme(
+            figure_color = "#0E1019", 
+            axes_color = "#121520", 
+            title_color = "#616883", 
+            ticks_color = "#616883", 
+            xy_label_color = "#616883",
+            plot_color = "white",
+            scatter_color = "#DA3333",
+            hist_color = "#DA3333",
+            plot2_color = "#DA3333",
+            pb_color = "#007300",
+        )
+    
+    @staticmethod
+    def from_variant(variant: ThemeVariant):
         match variant:
             case ThemeVariant.SHADOW:
                 return Theme.shadow()
@@ -138,6 +163,8 @@ class Theme():
                 return Theme.sewing_tin_light()
             case ThemeVariant.MIAMI:
                 return Theme.miami()
+            case ThemeVariant.DOTS:
+                return Theme.dots()
             case _:
                 raise NotImplementedError("No support for this theme")
                    

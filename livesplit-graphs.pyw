@@ -23,6 +23,7 @@ class Window(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowTitle("Livesplit Graphs")
+        self.loadThemes()
 
         self.listSplits.clear()
         self.connectSignalsSlots()
@@ -38,6 +39,10 @@ class Window(QMainWindow, Ui_MainWindow):
         self.color_options.currentIndexChanged.connect(self.loadGraph)
         self.option_buttons.buttonClicked.connect(self.loadGraph)
     
+    def loadThemes(self):
+        for variant in ThemeVariant:
+            self.color_options.addItem(variant.value)
+
     def selectFile(self):
         fileDialog = QFileDialog.getOpenFileName(
             self,
@@ -152,7 +157,7 @@ class Window(QMainWindow, Ui_MainWindow):
     
     def getTheme(self, theme_str: str):
         theme_variant = ThemeVariant.from_str(theme_str)
-        return Theme.get_theme(variant=theme_variant)
+        return Theme.from_variant(theme_variant)
     
 
 

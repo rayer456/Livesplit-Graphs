@@ -105,36 +105,6 @@
 	margin-bottom: 10px;
 }</string>
           </property>
-          <item>
-           <property name="text">
-            <string>Superuser</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Alpine</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Shadow</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Dark Magic Girl</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Miami</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Sewing Tin Light</string>
-           </property>
-          </item>
          </widget>
         </item>
         <item>

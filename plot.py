@@ -70,8 +70,9 @@ class Plot():
     
     def moving_avg(self, segment_times: DataFrame, avg_segment_times: DataFrame) -> Figure:
         #draw graph
-        colors = np.where(segment_times["is_from_pb"],'red', self.theme.scatter_color)
-        self.ax.scatter(segment_times.index.values+1, segment_times["seg_times"], s=10, c=colors, alpha=0.3)
+        colors = np.where(segment_times["is_from_pb"], self.theme.pb_color, self.theme.scatter_color)
+        alphas = np.where(segment_times["is_from_pb"], 1, 0.3)
+        self.ax.scatter(segment_times.index.values+1, segment_times["seg_times"], s=10, c=colors, alpha=alphas)
         self.ax.plot(avg_segment_times["avg_indexes"], avg_segment_times["avg_times"], linewidth=1.5, c=self.theme.plot_color)
 
         # y axis formatting

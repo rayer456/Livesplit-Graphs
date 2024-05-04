@@ -3,6 +3,7 @@ from dateutil import relativedelta
 import xml.etree.ElementTree as ET
 from statistics import pstdev, mean
 import pandas as pd
+from time import perf_counter
 
 import variables
 
@@ -12,6 +13,7 @@ class LiveSplitData():
     segment_times: pd.DataFrame
     
     def __init__(self, path: str):
+        start = perf_counter()
         self.set_XML_root(path)
         self.set_segments()
         self.set_game_name()
@@ -20,6 +22,9 @@ class LiveSplitData():
         self.set_split_names()
         self.extract_category_data()
         self.set_available_variables()
+        end = perf_counter()
+
+        #print(end-start)
 
     def set_XML_root(self, path):
         xtree = ET.parse(path)
@@ -53,15 +58,36 @@ class LiveSplitData():
         self.finished_dates, self.finished_times, self.finished_indexes = [], [], []
         self.pb_dates, self.pb_times = [], []
         self.pb_abs_indexes = []
+        self.finished_attempts = []
 
         pb_time = datetime.datetime.strptime("23:59:59", "%H:%M:%S")
+        last_date = None
+        finished_counter = 0
         for i, attempt in enumerate(self.xroot.find('AttemptHistory')):
             real_time = attempt.find('RealTime')
-            if real_time is None:
+            if real_time is None: # if run not finished
                 continue
-            end_date = attempt.attrib.get('ended')
-            converted_date = datetime.datetime.strptime(end_date[:10], '%m/%d/%Y')
-            self.finished_dates.append(converted_date)
+
+            finished_date = attempt.attrib.get('ended')
+            finished_date = datetime.datetime.strptime(finished_date[:10], '%m/%d/%Y')
+            finished_counter += 1
+            if last_date is None:
+                last_date = finished_date
+
+            # update counter if same day
+            if finished_date == last_date:
+                if len(self.finished_attempts) != 0:
+                    self.finished_attempts[-1] = finished_counter
+                else:
+                    self.finished_dates.append(finished_date)
+                    self.finished_attempts.append(finished_counter)
+
+            elif finished_date != last_date:
+                self.finished_dates.append(finished_date)
+                self.finished_attempts.append(finished_counter)
+            
+            last_date = finished_date
+
 
             t = real_time.text
             if len(t) == 8:
@@ -71,41 +97,38 @@ class LiveSplitData():
             self.finished_indexes.append(i+1)
 
             # check if PB
+            # TODO make function
             if finished_time < pb_time:
-                self.pb_dates.append(converted_date)
+                self.pb_dates.append(finished_date)
                 self.pb_times.append(finished_time)
                 pb_time = finished_time
                 self.pb_abs_indexes.append(i+1)
                 # TODO this can crash
                 self.pb_id = int(attempt.attrib.get('id'))
 
-        self.AOT_dates, self.AOT_attempts = [], []
 
+        self.AOT_dates, self.AOT_attempts = [], []
         attempt_history = self.xroot.find('AttemptHistory')
         start_dates = [attempt.attrib.get('started') for attempt in attempt_history]
         last_date = None
-
         for i, start_date in enumerate(start_dates):
             current_date = datetime.datetime.strptime(start_date[:10], '%m/%d/%Y')
-            #initial
+            # initial
+            # avoid issues with NoneType
             if last_date is None:
                 last_date = current_date
             
-            #different day?
+            # different day?
             if current_date != last_date:
                 self.AOT_dates.append(last_date)
                 self.AOT_attempts.append(i)
 
-            #last date
+            # end of attempts
             if i+1 == len(start_dates):
                 self.AOT_dates.append(current_date)
                 self.AOT_attempts.append(i+1)
             
             last_date = current_date
-
-
-    def get_category_rel_indexes(self):
-        return [i+1 for i in range(len(self.finished_indexes))]
     
     def extract_segment_data(self, segment_index: int, show_outliers: bool):
         ''' Extracts following data with and without outliers:

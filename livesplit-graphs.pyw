@@ -115,17 +115,17 @@ class Window(QMainWindow, Ui_MainWindow):
                 fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_scatter(event))
             case Graph.ATTEMPTS_OVER_TIME:
                 fig = plot.attempts_over_time()
-                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="Attempts Over Time"))
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, graph=Graph.ATTEMPTS_OVER_TIME))
             case Graph.IMP_OVER_ATTEMPTS:
                 fig = plot.imp_over_attempts()
             case Graph.IMP_OVER_TIME: 
                 fig = plot.imp_over_time()
             case Graph.PB_OVER_TIME:
                 fig = plot.personal_best_over_time()
-                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Time"))
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, graph=Graph.PB_OVER_TIME))
             case Graph.PB_OVER_ATTEMPTS:
                 fig = plot.personal_best_over_attempts()
-                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, type_graph="PB Over Attempts"))
+                fig.canvas.mpl_connect("motion_notify_event", lambda event=None : plot.hover_plot(event, graph=Graph.PB_OVER_ATTEMPTS))
             case _:
                 NotImplementedError("Graph not implemented.")
                 return

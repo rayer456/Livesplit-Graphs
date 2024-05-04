@@ -13,6 +13,7 @@ import numpy as np
 
 from livesplit_data import LiveSplitData
 from theme import Theme
+from graph import Graph
 
 
 class Plot():
@@ -95,11 +96,11 @@ class Plot():
         AOT_dates = self.lsd.AOT_dates
         AOT_attempts = self.lsd.AOT_attempts
 
-        num_finished_runs = self.lsd.get_category_rel_indexes()
+        finished_attempts = self.lsd.finished_attempts
         finished_dates = self.lsd.finished_dates
 
         self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color, label="All")
-        self.ax.plot(finished_dates, num_finished_runs, c=self.theme.plot2_color, linewidth=1.5, label="Finished")
+        self.ax.plot(finished_dates, finished_attempts, c=self.theme.plot2_color, linewidth=1.5, label="Finished")
 
         # x axis formatting
         xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
@@ -221,28 +222,33 @@ class Plot():
 
         return self.fig
 
-    def hover_plot(self, event: MouseEvent, type_graph):
+    def hover_plot(self, event: MouseEvent, graph: Graph):
         """
         Check when hovering over a plot line, proceed to update the annotation.
 
         Depending on the `type_graph` different update functions are called. This is because 
         different graphs require different annotations with different data types.
         """
-
         plot_data: list[Line2D] = self.ax.get_lines()
         if event.inaxes != self.ax or len(plot_data) < 1:
             return
 
+        # assume 1 line
         line = plot_data[0]
+        if len(plot_data) == 2:
+            # check which line is being hovered over
+            if plot_data[1].contains(event)[0]:
+                line = plot_data[1]
+
         hovering_over_line, pointlist = line.contains(event)
 
         if hovering_over_line:
-            match type_graph:
-                case "Attempts Over Time":
+            match graph:
+                case Graph.ATTEMPTS_OVER_TIME:
                     self.update_attempts_over_time_annot(pointlist, line)
-                case "PB Over Time":
+                case Graph.PB_OVER_TIME:
                     self.update_pb_over_time_annot(pointlist, line)
-                case "PB Over Attempts":
+                case Graph.PB_OVER_ATTEMPTS:
                     return
             self.annot.set_visible(True)
             self.fig.canvas.draw_idle()

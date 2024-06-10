@@ -308,7 +308,10 @@ class Plot():
         # set coordinates for annotation object relative to object being annotated
         self.annot.xy = line.get_xydata()[index]
 
-        self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nTime Played: {daily_time_played}\nDate: {day}")
+        if line.get_label() == "All":
+            self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nTime Played: {daily_time_played}\nDate: {day}")
+        else:
+            self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nDate: {day}")
 
     def hover_scatter(self, event: MouseEvent):
         """

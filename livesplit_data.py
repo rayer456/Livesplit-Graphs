@@ -15,39 +15,22 @@ class LiveSplitData():
     def __init__(self, path: str):
         start = perf_counter()
         self.set_XML_root(path)
-        self.set_segments()
-        self.set_game_name()
-        self.set_game_category()
-        self.set_variables()
-        self.set_split_names()
-        self.extract_category_data()
-        self.set_available_variables()
-        end = perf_counter()
+        self.segments = self.xroot.find('Segments')
+        self.game_name = self.xroot.find('GameName').text
+        self.game_category = self.xroot.find('CategoryName').text
+        self.variables = self.xroot.find('Metadata').find('Variables')
+        self.split_names = [segment.find('Name').text for segment in self.segments]
+        self.available_variables = variables.get_category_variables(self.game_name, self.game_category)
 
-        #print(end-start)
+        self.extract_category_data()
+        
+        end = perf_counter()
+        # print(end-start)
 
     def set_XML_root(self, path):
         xtree = ET.parse(path)
         self.xroot = xtree.getroot()
-
-    def set_segments(self):
-        self.segments = self.xroot.find('Segments')
-
-    def set_available_variables(self):
-        self.available_variables = variables.get_category_variables(self.game_name, self.game_category)
- 
-    def set_game_name(self):
-        self.game_name = self.xroot.find('GameName').text
-    
-    def set_game_category(self):
-        self.game_category = self.xroot.find('CategoryName').text
-    
-    def set_variables(self):
-        self.variables = self.xroot.find('Metadata').find('Variables')
-    
-    def set_split_names(self):
-        self.split_names = [segment.find('Name').text for segment in self.segments]
-
+        
     def extract_category_data(self):
         ''' Extract necessary data to plot CATEGORY graphs
             - Finished Dates & Attempted Dates
@@ -59,6 +42,7 @@ class LiveSplitData():
         self.pb_dates, self.pb_times = [], []
         self.pb_abs_indexes = []
         self.finished_attempts = []
+        self.unique_finished_dates = []
 
         pb_time = datetime.datetime.strptime("23:59:59", "%H:%M:%S")
         last_date = None
@@ -68,26 +52,23 @@ class LiveSplitData():
             if real_time is None: # if run not finished
                 continue
 
-            finished_date = attempt.attrib.get('ended')
-            finished_date = datetime.datetime.strptime(finished_date[:10], '%m/%d/%Y')
+            finished_date = datetime.datetime.strptime(attempt.attrib.get('ended')[:10], '%m/%d/%Y')
             finished_counter += 1
             if last_date is None:
                 last_date = finished_date
 
             # update counter if same day
-            if finished_date == last_date:
-                if len(self.finished_attempts) != 0:
-                    self.finished_attempts[-1] = finished_counter
-                else:
-                    self.finished_dates.append(finished_date)
-                    self.finished_attempts.append(finished_counter)
+            if finished_date == last_date and len(self.finished_attempts) != 0:
+                self.finished_attempts[-1] = finished_counter
 
-            elif finished_date != last_date:
-                self.finished_dates.append(finished_date)
+            # first attempt or different date
+            else:
+                self.unique_finished_dates.append(finished_date)
                 self.finished_attempts.append(finished_counter)
-            
-            last_date = finished_date
 
+            self.finished_dates.append(finished_date)
+
+            last_date = finished_date
 
             t = real_time.text
             if len(t) == 8:
@@ -97,7 +78,6 @@ class LiveSplitData():
             self.finished_indexes.append(i+1)
 
             # check if PB
-            # TODO make function
             if finished_time < pb_time:
                 self.pb_dates.append(finished_date)
                 self.pb_times.append(finished_time)
@@ -107,14 +87,14 @@ class LiveSplitData():
                 self.pb_id = int(attempt.attrib.get('id'))
 
 
-        self.AOT_dates, self.AOT_attempts = [], []
+        self.AOT_dates, self.AOT_attempts, self.daily_time_played = [], [], []
         attempt_history = self.xroot.find('AttemptHistory')
-        start_dates = [attempt.attrib.get('started') for attempt in attempt_history]
+        current_dates = [datetime.datetime.strptime(attempt.attrib.get('ended')[:10], '%m/%d/%Y') for attempt in attempt_history]
+        time_played = [datetime.datetime.strptime(attempt.attrib.get('ended'), '%m/%d/%Y %H:%M:%S') - datetime.datetime.strptime(attempt.attrib.get('started'), '%m/%d/%Y %H:%M:%S') for attempt in attempt_history]
+        total_daily_playtime = relativedelta.relativedelta(hour=0)
         last_date = None
-        for i, start_date in enumerate(start_dates):
-            current_date = datetime.datetime.strptime(start_date[:10], '%m/%d/%Y')
-            # initial
-            # avoid issues with NoneType
+        for i, current_date in enumerate(current_dates):
+            # initial avoid issues with NoneType
             if last_date is None:
                 last_date = current_date
             
@@ -122,13 +102,27 @@ class LiveSplitData():
             if current_date != last_date:
                 self.AOT_dates.append(last_date)
                 self.AOT_attempts.append(i)
+                self.daily_time_played.append(total_daily_playtime)
+                total_daily_playtime = relativedelta.relativedelta(hour=0)
 
-            # end of attempts
-            if i+1 == len(start_dates):
+            # final attempt
+            if i+1 == len(current_dates):
                 self.AOT_dates.append(current_date)
                 self.AOT_attempts.append(i+1)
+
+                # update total now since it's the last cycle
+                time_in_attempt = time_played[i]
+                total_daily_playtime += time_in_attempt
+                self.daily_time_played.append(total_daily_playtime)
             
             last_date = current_date
+            time_in_attempt = time_played[i]
+            total_daily_playtime += time_in_attempt
+        
+        xm = pd.DataFrame({
+            "dates": self.AOT_dates,
+            "attempts": self.AOT_attempts,
+        })
     
     def extract_segment_data(self, segment_index: int, show_outliers: bool):
         ''' Extracts following data with and without outliers:

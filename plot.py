@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -96,11 +97,21 @@ class Plot():
         AOT_dates = self.lsd.AOT_dates
         AOT_attempts = self.lsd.AOT_attempts
 
-        finished_attempts = self.lsd.finished_attempts
-        finished_dates = self.lsd.finished_dates
+        # testing: show most played date and time
+        """ most_time = relativedelta(hours=0)
+        for i, time_played in enumerate(self.lsd.daily_time_played):
+            time_played: relativedelta
+
+            if self.rd_in_seconds(time_played) > self.rd_in_seconds(most_time):
+                most_time = time_played
+                print(i)
+                print(AOT_dates[i])
+
+        print(most_time)
+        print(self.rd_in_seconds(most_time)) """
 
         self.ax.plot(AOT_dates, AOT_attempts, c=self.theme.plot_color, label="All")
-        self.ax.plot(finished_dates, finished_attempts, c=self.theme.plot2_color, linewidth=1.5, label="Finished")
+        self.ax.plot(self.lsd.unique_finished_dates, self.lsd.finished_attempts, c=self.theme.plot2_color, linewidth=1.5, label="Finished")
 
         # x axis formatting
         xfmt = lambda x, pos: mdates.DateFormatter("%b %d '%y")(x)
@@ -136,12 +147,9 @@ class Plot():
         return self.fig
 
     def imp_over_time(self) -> Figure:
-        finished_dates = self.lsd.finished_dates
         finished_times = self.lsd.finished_times
-        interval_dates = self.lsd.get_dynamic_interval(finished_times, ticks=16, format='%H:%M:%S')
 
-        # self.ax.scatter(finished_dates, finished_times, c=self.theme.scatter_color, s=10, alpha=0.3)
-        self.ax.fill_between(finished_dates, min(interval_dates), finished_times, facecolor=self.theme.scatter_color, alpha=0.5)
+        self.ax.scatter(self.lsd.finished_dates, finished_times, c=self.theme.scatter_color, s=10, alpha=0.3)
 
         # y axis formatting
         xfmt = lambda x, pos: mdates.DateFormatter("%H:%M:%S")(x)
@@ -272,7 +280,6 @@ class Plot():
             difference = previous_pb_time - pb_time
             improved_by = self.format_timedelta(difference)
 
-        
         pb_time = pb_time.strftime("%H:%M:%S.%f")[:10]
 
         # set coordinates for annotation object relative to object being annotated
@@ -289,6 +296,8 @@ class Plot():
         day: datetime = line.get_xdata()[index]
         day = day.strftime("%b %d %Y")
         total_attempts = line.get_ydata()[index]
+        daily_time_played: relativedelta = self.lsd.daily_time_played[index]
+        daily_time_played = self.format_relativedelta(daily_time_played)
 
         # check for first index
         total_attempts_previous_session = line.get_ydata()[index-1]
@@ -297,10 +306,9 @@ class Plot():
         daily_attempts = total_attempts - total_attempts_previous_session
 
         # set coordinates for annotation object relative to object being annotated
-        pos = line.get_xydata()[index]
-        self.annot.xy = pos
+        self.annot.xy = line.get_xydata()[index]
 
-        self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nDate: {day}")
+        self.annot.set_text(f"Total: {total_attempts}\nDaily: {daily_attempts}\nTime Played: {daily_time_played}\nDate: {day}")
 
     def hover_scatter(self, event: MouseEvent):
         """
@@ -381,3 +389,26 @@ class Plot():
             formatted_str += f"{remaining_seconds}s "
 
         return formatted_str
+    
+    def format_relativedelta(self, rd: relativedelta) -> str:
+        """
+        Helper function that converts a `relativedelta` object to a user friendly string.
+        """
+        
+        hours = rd.hours
+        hours += rd.days * 24
+
+        formatted_str = ""
+        if hours != 0:
+            formatted_str += f"{hours}h "
+
+        if rd.minutes != 0:
+            formatted_str += f"{rd.minutes}m "
+
+        if rd.seconds != 0:
+            formatted_str += f"{rd.seconds}s "
+
+        return formatted_str
+    
+    def rd_in_seconds(self, rd: relativedelta) -> int:
+        return rd.days*86400 + rd.hours*3600 + rd.minutes*60 + rd.seconds
